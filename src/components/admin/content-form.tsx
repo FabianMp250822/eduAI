@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Upload, FileUp, Link as LinkIcon } from 'lucide-react';
-import { TinyMceEditor } from '@/components/tinymce-editor';
+import { RichTextEditor } from '@/components/ckeditor';
 import { Card, CardContent } from '@/components/ui/card';
 
 const resourceTypes = [
@@ -38,7 +38,7 @@ const FormSchema = z.object({
     return false;
 }, {
     message: 'Por favor, proporciona el contenido requerido para el tipo de recurso seleccionado.',
-    path: ['topicContent'], // You can adjust the path to point to a more general location if needed
+    path: ['topicContent'], 
 });
 
 
@@ -193,9 +193,9 @@ export function ContentForm() {
                             <FormItem>
                             <FormLabel>Contenido del Tema</FormLabel>
                             <FormControl>
-                                <TinyMceEditor
+                                <RichTextEditor
                                     value={field.value ?? ''}
-                                    onEditorChange={field.onChange}
+                                    onChange={field.onChange}
                                 />
                             </FormControl>
                             <FormMessage />
@@ -277,3 +277,5 @@ export function ContentForm() {
     </Form>
   );
 }
+
+    
