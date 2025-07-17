@@ -48,14 +48,14 @@ const generateTopicsPrompt = ai.definePrompt({
   output: { schema: GenerateTopicsOutputSchema },
   prompt: `Eres un experto diseñador de currículos educativos y profesor para Colombia.
   
-  Tu tarea es generar 5 temas fundamentales para la materia de '{{{subjectName}}}' en el grado '{{{gradeName}}}'.
+  Tu tarea es generar 5 temas adicionales o más avanzados para la materia de '{{{subjectName}}}' en el grado '{{{gradeName}}}'. Evita generar temas básicos que probablemente ya existan.
   
   Para cada tema, proporciona:
   1.  Un nombre conciso y claro.
   2.  Una breve descripción (1-2 frases).
   3.  El contenido educativo completo y detallado del tema en formato HTML. Este contenido debe ser apropiado para el nivel educativo, estar bien estructurado con etiquetas como <h3>, <h4>, <p>, <ul>, <li> y <strong> para resaltar términos clave. Debe ser completo y listo para ser estudiado por un alumno.
 
-  Genera exactamente 5 temas.`,
+  Genera exactamente 5 temas. Asegúrate de que el contenido sea novedoso y no una repetición de conceptos elementales.`,
 });
 
 const generateTopicsFlow = ai.defineFlow(
