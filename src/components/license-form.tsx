@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent } from '@/components/ui/card';
+import { auth } from '@/lib/firebase';
+import { signInAnonymously } from 'firebase/auth';
 
 const FormSchema = z.object({
   licenseKey: z.string().min(1, 'La clave de licencia es obligatoria.'),
@@ -28,26 +30,28 @@ export function LicenseForm() {
   });
 
   async function onSubmit(data: FormValues) {
-    // Placeholder for actual Firebase license validation
-    // and anonymous sign-in.
-    console.log('Validando clave de licencia:', data.licenseKey);
+    if (data.licenseKey.toLowerCase() !== 'test-key') {
+      toast({
+        variant: "destructive",
+        title: "Validación Fallida",
+        description: "Clave de licencia inválida. Por favor, inténtalo de nuevo.",
+      });
+      return;
+    }
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Simulate a successful validation
-    if (data.licenseKey.toLowerCase() === 'test-key') {
+    try {
+      await signInAnonymously(auth);
       toast({
         title: "Validación Exitosa",
         description: "¡Bienvenido a EduSync AI!",
       });
-      // On success, redirect to the dashboard
       router.push('/dashboard');
-    } else {
-       toast({
+    } catch (error) {
+      console.error("Error de autenticación anónima:", error);
+      toast({
         variant: "destructive",
-        title: "Validación Fallida",
-        description: "Clave de licencia inválida. Por favor, inténtalo de nuevo.",
+        title: "Error de Autenticación",
+        description: "No se pudo iniciar sesión. Por favor, revisa tu conexión a Firebase.",
       });
     }
   }
