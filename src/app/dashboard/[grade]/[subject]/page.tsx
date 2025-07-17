@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { useParams, notFound } from 'next/navigation';
 import { findSubject } from '@/lib/curriculum';
 import { Card, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Header } from '@/components/header';
@@ -11,15 +11,11 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle2, Loader } from 'lucide-react';
 import { useSyncStatus } from '@/hooks/use-sync';
 
-type SubjectPageProps = {
-  params: {
-    grade: string;
-    subject: string;
-  };
-};
+export default function SubjectPage() {
+  const params = useParams();
+  const grade = Array.isArray(params.grade) ? params.grade[0] : params.grade;
+  const subjectSlug = Array.isArray(params.subject) ? params.subject[0] : params.subject;
 
-export default function SubjectPage({ params }: SubjectPageProps) {
-  const { grade, subject: subjectSlug } = params;
   const subject = findSubject(grade, subjectSlug);
   const { isTopicSynced, isSyncing } = useSyncStatus();
 
