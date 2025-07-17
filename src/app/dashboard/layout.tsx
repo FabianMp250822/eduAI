@@ -2,6 +2,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   SidebarProvider,
   Sidebar,
@@ -36,16 +37,18 @@ export default function DashboardLayout({
         <Sidebar>
           <SidebarHeader>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
-                  <Link href="/dashboard">
-                      <GraduationCap className="h-6 w-6 text-primary" />
-                  </Link>
-              </Button>
-              <div className="flex flex-col">
-                <h2 className="font-headline text-lg font-semibold tracking-tight">
-                  EduSync AI
-                </h2>
-              </div>
+              <Link href="/dashboard" className="flex items-center gap-2">
+                 <Image 
+                    src="https://firebasestorage.googleapis.com/v0/b/edusync-ai-ldeq7.firebasestorage.app/o/image-removebg-preview.png?alt=media&token=4da022e6-4a05-4662-b40b-644569d3e291" 
+                    alt="EduSync AI Logo"
+                    width={40}
+                    height={40}
+                    className="h-8 w-8"
+                  />
+                  <h2 className="font-headline text-lg font-semibold tracking-tight">
+                    EduSync AI
+                  </h2>
+              </Link>
             </div>
           </SidebarHeader>
           <SidebarContent>
