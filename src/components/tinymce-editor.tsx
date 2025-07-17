@@ -14,6 +14,7 @@ export function TinyMceEditor({ value, onEditorChange }: TinyMceEditorProps) {
 
   return (
     <Editor
+      tinymceScriptSrc={`https://cdn.tiny.cloud/1/${process.env.NEXT_PUBLIC_TINYMCE_API_KEY}/tinymce/7/tinymce.min.js`}
       onInit={(evt, editor) => (editorRef.current = editor)}
       value={value}
       onEditorChange={(newValue, editor) => onEditorChange(newValue)}
@@ -31,7 +32,7 @@ export function TinyMceEditor({ value, onEditorChange }: TinyMceEditorProps) {
           'alignright alignjustify | bullist numlist outdent indent | ' +
           'removeformat | help',
         content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-        paste_data_images: true,
+        paste_data_images: true, // Allows pasting images
         paste_as_text: false,
         paste_retain_style_properties: 'all',
         paste_word_valid_elements: '-strong/b,-em/i,-u,-span,-p,-ol,-ul,-li,-h1,-h2,-h3,-h4,-h5,-h6,-table,-tr,-td,-tbody,-thead,-tfoot,-div,-br',
