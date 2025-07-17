@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -9,8 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent } from '@/components/ui/card';
-import { auth } from '@/lib/firebase';
-import { signInAnonymously } from 'firebase/auth';
+import { db } from '@/lib/firebase';
+import { doc, runTransaction, serverTimestamp } from "firebase/firestore";
 
 const FormSchema = z.object({
   licenseKey: z.string().min(1, 'La clave de licencia es obligatoria.'),
@@ -30,28 +31,51 @@ export function LicenseForm() {
   });
 
   async function onSubmit(data: FormValues) {
-    if (data.licenseKey.toLowerCase() !== 'test-key') {
-      toast({
-        variant: "destructive",
-        title: "Validación Fallida",
-        description: "Clave de licencia inválida. Por favor, inténtalo de nuevo.",
-      });
-      return;
-    }
+    const { licenseKey } = data;
+    const licenseRef = doc(db, "licenses", licenseKey);
 
     try {
-      await signInAnonymously(auth);
+      await runTransaction(db, async (transaction) => {
+        const licenseDoc = await transaction.get(licenseRef);
+
+        if (!licenseDoc.exists()) {
+          throw new Error("Clave de licencia inválida.");
+        }
+
+        const licenseData = licenseDoc.data();
+        
+        if (licenseData.status !== 'active') {
+          throw new Error("La licencia no está activa.");
+        }
+
+        const currentInstalls = licenseData.currentInstalls || 0;
+        const maxInstalls = licenseData.maxInstalls || 1;
+
+        if (currentInstalls >= maxInstalls) {
+          throw new Error("Se ha alcanzado el número máximo de instalaciones para esta licencia.");
+        }
+        
+        // Si todo está bien, incrementamos el contador
+        transaction.update(licenseRef, { currentInstalls: currentInstalls + 1 });
+      });
+      
+      // Si la transacción es exitosa, procedemos
       toast({
         title: "Validación Exitosa",
         description: "¡Bienvenido a EduSync AI!",
       });
+      
+      // Guardamos la licencia en el almacenamiento local para futuras sesiones
+      localStorage.setItem('licenseKey', licenseKey);
+
       router.push('/dashboard');
-    } catch (error) {
-      console.error("Error de autenticación anónima:", error);
+
+    } catch (error: any) {
+      console.error("Error de validación de licencia:", error);
       toast({
         variant: "destructive",
-        title: "Error de Autenticación",
-        description: "No se pudo iniciar sesión. Por favor, revisa tu conexión a Firebase.",
+        title: "Validación Fallida",
+        description: error.message || "No se pudo validar la licencia. Por favor, inténtalo de nuevo.",
       });
     }
   }
@@ -70,8 +94,8 @@ export function LicenseForm() {
                   <FormControl>
                     <Input placeholder="Ingresa tu clave de licencia" {...field} />
                   </FormControl>
-                  <FormDescription>
-                    Usa 'test-key' para una demostración.
+                   <FormDescription>
+                    Pide tu clave a tu proveedor educativo.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
