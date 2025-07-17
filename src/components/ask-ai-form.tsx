@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { generateEducationalContent } from '@/ai/flows/generate-educational-content';
+import { generateEducationalContent, GenerateEducationalContentOutput } from '@/ai/flows/generate-educational-content';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -13,6 +13,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Sparkles } from 'lucide-react';
 import { addPointsForAction } from '@/lib/points';
 import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/db';
+import { db as firebaseDb } from '@/lib/firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 
 const FormSchema = z.object({
@@ -23,7 +26,7 @@ type FormValues = z.infer<typeof FormSchema>;
 
 export function AskAiForm() {
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
+  const [result, setResult] = useState<GenerateEducationalContentOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -34,6 +37,44 @@ export function AskAiForm() {
     },
   });
 
+  const saveAiContent = async (query: string, response: GenerateEducationalContentOutput) => {
+      const id = `ai_${Date.now()}`;
+      const newContent = {
+        id,
+        query,
+        content: response.content,
+        gradeSlug: response.gradeSlug,
+        subjectSlug: response.subjectSlug,
+        createdAt: new Date(),
+      };
+
+      // 1. Save locally to Dexie
+      try {
+        await db.aiContent.put(newContent);
+        console.log('Contenido de IA guardado localmente.');
+      } catch (e) {
+        console.error("Error al guardar en la base de datos local:", e);
+      }
+
+      // 2. Save to Firebase if online
+      if (navigator.onLine) {
+        const licenseKey = localStorage.getItem('licenseKey');
+        if (!licenseKey) return;
+        
+        try {
+            const docRef = doc(firebaseDb, `licenses/${licenseKey}/ai_generated_content`, id);
+            await setDoc(docRef, {
+                ...newContent,
+                syncedAt: serverTimestamp(),
+            });
+            console.log('Contenido de IA sincronizado con Firebase.');
+        } catch(e) {
+            console.error("Error al sincronizar con Firebase:", e);
+        }
+      }
+  };
+
+
   async function onSubmit(data: FormValues) {
     setLoading(true);
     setResult(null);
@@ -41,8 +82,10 @@ export function AskAiForm() {
 
     try {
       const response = await generateEducationalContent({ query: data.query });
-      setResult(response.content);
+      setResult(response);
       
+      await saveAiContent(data.query, response);
+
       const success = await addPointsForAction(`ask_ai_${Date.now()}`, 10);
       if (success) {
         toast({
@@ -130,7 +173,7 @@ export function AskAiForm() {
           </CardHeader>
           <CardContent>
             <div className="prose prose-sm max-w-none dark:prose-invert"
-              dangerouslySetInnerHTML={{ __html: result.replace(/\n/g, '<br />') }} />
+              dangerouslySetInnerHTML={{ __html: result.content.replace(/\n/g, '<br />') }} />
           </CardContent>
         </Card>
       )}
