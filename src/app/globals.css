@@ -33,7 +33,7 @@ body {
     --chart-4: 290 86% 65%;
     --chart-5: 350 91% 60%;
     --radius: 0.75rem;
-    --sidebar-background: 220 20% 98%;
+    --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 220 15% 20%;
     --sidebar-primary: 195 85% 41%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -68,7 +68,7 @@ body {
     --chart-3: 220 74% 65%;
     --chart-4: 290 76% 70%;
     --chart-5: 350 81% 65%;
-    --sidebar-background: 220 15% 10%;
+    --sidebar-background: 220 15% 12%;
     --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 195 78% 51%;
     --sidebar-primary-foreground: 220 15% 10%;
