@@ -3,31 +3,31 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Rules for the main licenses collection
     match /licenses/{licenseId} {
-      
-      // Allow anyone to read a specific license document to validate it.
+      // Permite a cualquiera LEER un documento de licencia para validarlo.
       allow get: if true;
-
-      // Allow updates only under two specific conditions:
-      // 1. Incrementing 'currentInstalls' by exactly 1, without exceeding 'maxInstalls'.
-      // 2. Incrementing the 'points' field (a simple check for gamification).
+      
+      // Permite ACTUALIZAR un documento de licencia bajo dos condiciones:
+      // 1. Para incrementar el contador de instalaciones al activar una nueva.
+      // 2. Para incrementar los puntos del usuario.
       allow update: if (request.resource.data.currentInstalls == resource.data.currentInstalls + 1
                        && request.resource.data.currentInstalls <= resource.data.maxInstalls)
                        || (request.resource.data.points > resource.data.points);
-                         
-      // Disallow creating or deleting licenses from the client application.
+                     
+      // Nadie puede crear o borrar licencias desde la app.
       allow create, delete: if false;
 
-      // Rules for subcollections within a license document
+      // Permite la creación de documentos en las subcolecciones 'actions' (para puntos)
+      // y 'ai_generated_content' (para consultas de IA).
+      // Esto es seguro porque un usuario solo puede escribir dentro del documento de su propia licencia.
       match /{subcollection}/{docId} {
-        // Allow clients to create documents in the 'actions' and 'ai_generated_content'
-        // subcollections, associated with their license.
         allow create: if subcollection == 'actions' || subcollection == 'ai_generated_content';
-        
-        // Disallow reading, updating, or deleting subcollection documents from the client.
-        allow read, update, delete: if false;
       }
+    }
+
+    // Bloquea el acceso a cualquier otra colección por defecto.
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
