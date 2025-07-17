@@ -15,7 +15,6 @@ import { db as firebaseDb } from '@/lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { Input } from '@/components/ui/input';
 import type { Topic } from '@/lib/curriculum';
-import { Progress } from '@/components/ui/progress';
 
 interface TopicWithId extends Topic {
   id: string;
@@ -125,7 +124,7 @@ export default function SubjectPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredTopics.map((topic) => (
               <Card key={topic.id} className="flex flex-col transition-shadow hover:shadow-lg hover:border-primary/50">
-                 <Link href={`#`} className="flex flex-col flex-grow p-4">
+                 <Link href={`/dashboard/${gradeSlug}/${subjectSlug}/topic/${topic.slug}`} className="flex flex-col flex-grow p-4">
                     <CardHeader className="p-0 mb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
@@ -154,7 +153,7 @@ export default function SubjectPage() {
                               />
                             </svg>
                             <div className="absolute inset-0 flex items-center justify-center">
-                               {topic.progress > 0 ? <CheckCircle className="h-5 w-5 text-primary" /> : <Circle className="h-5 w-5 text-muted-foreground/50" />}
+                               {topic.progress >= 100 ? <CheckCircle className="h-5 w-5 text-primary" /> : <Circle className="h-5 w-5 text-muted-foreground/50" />}
                             </div>
                         </div>
                       </div>

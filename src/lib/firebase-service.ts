@@ -2,13 +2,19 @@ import { db } from '@/lib/firebase';
 import { doc, setDoc, arrayUnion } from 'firebase/firestore';
 import type { Topic } from '@/lib/curriculum';
 
+interface TopicToSave extends Omit<Topic, 'slug' | 'progress'> {
+    slug: string;
+    progress: number;
+    content?: string; // Add content field
+}
+
 /**
  * Guarda o actualiza los temas de una asignatura en Firestore.
  * @param gradeSlug El slug del grado.
  * @param subjectSlug El slug de la materia.
  * @param topics La lista de temas a guardar.
  */
-export async function saveTopicsToFirebase(gradeSlug: string, subjectSlug: string, topics: Topic[]): Promise<void> {
+export async function saveTopicsToFirebase(gradeSlug: string, subjectSlug: string, topics: TopicToSave[]): Promise<void> {
   const docId = `${gradeSlug}_${subjectSlug}`;
   const subjectRef = doc(db, 'subjects', docId);
 

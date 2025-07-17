@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -22,6 +23,7 @@ export type GenerateTopicsInput = z.infer<typeof GenerateTopicsInputSchema>;
 const TopicSchema = z.object({
     name: z.string().describe("El nombre del tema, debe ser conciso y claro."),
     description: z.string().describe("Una descripción corta (1-2 frases) de lo que cubre el tema."),
+    content: z.string().describe("El contenido educativo completo del tema, en formato HTML. Debe ser detallado, bien estructurado con encabezados (<h3>, <h4>), párrafos (<p>), listas (<ul>, <li>) y texto en negrita (<strong>) para una fácil lectura."),
 });
 
 const GenerateTopicsOutputSchema = z.object({
@@ -44,11 +46,14 @@ const generateTopicsPrompt = ai.definePrompt({
   name: 'generateTopicsPrompt',
   input: { schema: GenerateTopicsInputSchema },
   output: { schema: GenerateTopicsOutputSchema },
-  prompt: `Eres un experto diseñador de currículos educativos para Colombia.
+  prompt: `Eres un experto diseñador de currículos educativos y profesor para Colombia.
   
   Tu tarea es generar 5 temas fundamentales para la materia de '{{{subjectName}}}' en el grado '{{{gradeName}}}'.
   
-  Los temas deben ser apropiados para el nivel educativo y cubrir conceptos clave. Para cada tema, proporciona un nombre y una breve descripción.
+  Para cada tema, proporciona:
+  1.  Un nombre conciso y claro.
+  2.  Una breve descripción (1-2 frases).
+  3.  El contenido educativo completo y detallado del tema en formato HTML. Este contenido debe ser apropiado para el nivel educativo, estar bien estructurado con etiquetas como <h3>, <h4>, <p>, <ul>, <li> y <strong> para resaltar términos clave. Debe ser completo y listo para ser estudiado por un alumno.
 
   Genera exactamente 5 temas.`,
 });

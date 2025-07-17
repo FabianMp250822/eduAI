@@ -40,6 +40,7 @@ export interface Topic {
   slug: string;
   description: string;
   progress: number;
+  content?: string;
 }
 
 export interface Subject {

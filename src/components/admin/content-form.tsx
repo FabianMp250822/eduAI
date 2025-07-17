@@ -5,39 +5,37 @@ import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { curriculum, type Subject } from '@/lib/curriculum';
+import { curriculum, type Subject, type Topic } from '@/lib/curriculum';
 import { useToast } from '@/hooks/use-toast';
+import { saveTopicsToFirebase } from '@/lib/firebase-service';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Upload, FileUp, Link as LinkIcon } from 'lucide-react';
+import { Upload, FileUp, Link as LinkIcon, Save } from 'lucide-react';
 import { RichTextEditor } from '@/components/ckeditor';
 import { Card, CardContent } from '@/components/ui/card';
 
 const resourceTypes = [
-  { value: 'richText', label: 'Texto Enriquecido' },
-  { value: 'video', label: 'Video' },
-  { value: 'pdf', label: 'Documento PDF' },
+  { value: 'richText', label: 'Tema Completo (Texto Enriquecido)' },
+  { value: 'video', label: 'Video (Próximamente)' },
+  { value: 'pdf', label: 'Documento PDF (Próximamente)' },
 ];
 
 const FormSchema = z.object({
   gradeSlug: z.string().min(1, 'Debes seleccionar un grado.'),
   subjectSlug: z.string().min(1, 'Debes seleccionar una materia.'),
   topicName: z.string().min(3, 'El nombre del tema debe tener al menos 3 caracteres.'),
+  topicDescription: z.string().min(10, 'La descripción debe tener al menos 10 caracteres.'),
   resourceType: z.string().min(1, 'Debes seleccionar un tipo de recurso.'),
   topicContent: z.string().optional(),
   videoUrl: z.string().url('Introduce una URL de video válida.').optional().or(z.literal('')),
-  videoFile: z.any().optional(),
-  pdfFile: z.any().optional(),
 }).refine(data => {
     if (data.resourceType === 'richText') return !!data.topicContent && data.topicContent.length >= 20;
-    if (data.resourceType === 'video') return !!data.videoUrl || !!data.videoFile;
-    if (data.resourceType === 'pdf') return !!data.pdfFile;
-    return false;
+    return true; 
 }, {
-    message: 'Por favor, proporciona el contenido requerido para el tipo de recurso seleccionado.',
+    message: 'Por favor, proporciona el contenido para el tema. Debe tener al menos 20 caracteres.',
     path: ['topicContent'], 
 });
 
@@ -47,7 +45,6 @@ type FormValues = z.infer<typeof FormSchema>;
 export function ContentForm() {
   const { toast } = useToast();
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
@@ -55,6 +52,7 @@ export function ContentForm() {
       gradeSlug: '',
       subjectSlug: '',
       topicName: '',
+      topicDescription: '',
       resourceType: 'richText',
       topicContent: '',
       videoUrl: '',
@@ -62,6 +60,8 @@ export function ContentForm() {
   });
 
   const resourceType = form.watch('resourceType');
+  const isSubmitting = form.formState.isSubmitting;
+
 
   const handleGradeChange = (gradeSlug: string) => {
     form.setValue('gradeSlug', gradeSlug);
@@ -71,22 +71,45 @@ export function ContentForm() {
   };
 
   async function onSubmit(data: FormValues) {
-    setIsSubmitting(true);
-    console.log('Form data submitted:', data);
+    if (data.resourceType !== 'richText') {
+        toast({
+            variant: "destructive",
+            title: "Función no disponible",
+            description: "La carga de videos y PDFs estará disponible próximamente.",
+        });
+        return;
+    }
+
+    const newTopic: Topic & { content: string } = {
+        name: data.topicName,
+        slug: data.topicName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+        description: data.topicDescription,
+        progress: 0,
+        content: data.topicContent || '',
+    };
     
-    // Here you would add logic to upload files to Firebase Storage
-    // and then save the resulting URL/content to your database.
-    
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast({
-      title: 'Contenido Guardado',
-      description: `El recurso "${data.topicName}" ha sido añadido exitosamente.`,
-    });
-    
-    form.reset();
-    setSubjects([]);
-    setIsSubmitting(false);
+    try {
+        await saveTopicsToFirebase(data.gradeSlug, data.subjectSlug, [newTopic]);
+        toast({
+            title: 'Contenido Guardado',
+            description: `El tema "${data.topicName}" ha sido añadido exitosamente.`,
+        });
+        form.reset({
+             gradeSlug: data.gradeSlug,
+             subjectSlug: data.subjectSlug,
+             topicName: '',
+             topicDescription: '',
+             resourceType: 'richText',
+             topicContent: '',
+        });
+    } catch (error) {
+        console.error(error);
+        toast({
+            variant: "destructive",
+            title: "Error al guardar",
+            description: "No se pudo guardar el tema en la base de datos.",
+        });
+    }
   }
 
   return (
@@ -149,9 +172,22 @@ export function ContentForm() {
             name="topicName"
             render={({ field }) => (
                 <FormItem>
-                <FormLabel>Nombre del Tema / Recurso</FormLabel>
+                <FormLabel>Nombre del Tema</FormLabel>
                 <FormControl>
                     <Input placeholder="Ej: El Ciclo del Agua" {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+        />
+        <FormField
+            control={form.control}
+            name="topicDescription"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Descripción Corta del Tema</FormLabel>
+                <FormControl>
+                    <Input placeholder="Una breve descripción que aparecerá en la tarjeta del tema." {...field} />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
@@ -172,7 +208,7 @@ export function ContentForm() {
                 </FormControl>
                 <SelectContent>
                   {resourceTypes.map(type => (
-                    <SelectItem key={type.value} value={type.value}>
+                    <SelectItem key={type.value} value={type.value} disabled={type.value !== 'richText'}>
                       {type.label}
                     </SelectItem>
                   ))}
@@ -191,91 +227,41 @@ export function ContentForm() {
                         name="topicContent"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Contenido del Tema</FormLabel>
+                            <FormLabel>Contenido Completo del Tema</FormLabel>
                             <FormControl>
                                 <RichTextEditor
                                     value={field.value ?? ''}
                                     onChange={field.onChange}
                                 />
                             </FormControl>
+                             <FormDescription>
+                                Escribe o pega el contenido aquí. Puedes usar las herramientas de formato.
+                             </FormDescription>
                             <FormMessage />
                             </FormItem>
                         )}
                     />
                 )}
                 {resourceType === 'video' && (
-                  <div className="space-y-4">
-                     <FormField
-                        control={form.control}
-                        name="videoUrl"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>URL del Video (YouTube, Vimeo)</FormLabel>
-                                <FormControl>
-                                    <div className="relative">
-                                        <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input placeholder="https://www.youtube.com/watch?v=..." {...field} className="pl-10" />
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                     />
-                     <div className="relative flex items-center justify-center">
-                        <div className="flex-grow border-t"></div>
-                        <span className="flex-shrink mx-4 text-muted-foreground text-xs">O</span>
-                        <div className="flex-grow border-t"></div>
-                     </div>
-                      <FormField
-                          control={form.control}
-                          name="videoFile"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-col items-center">
-                              <FormLabel>Subir archivo de video</FormLabel>
-                              <FormControl>
-                                 <Button type="button" variant="outline" onClick={() => alert('Función de carga de video próximamente!')}>
-                                    <FileUp className="mr-2 h-4 w-4" />
-                                    Seleccionar Video
-                                 </Button>
-                              </FormControl>
-                              <FormDescription>Sube un archivo de video directamente (MP4, etc.)</FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                      />
+                  <div className="space-y-4 text-center text-muted-foreground p-8">
+                     <p>La carga de videos estará disponible próximamente.</p>
                   </div>
                 )}
                 {resourceType === 'pdf' && (
-                     <FormField
-                        control={form.control}
-                        name="pdfFile"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-col items-center">
-                            <FormLabel>Subir documento PDF</FormLabel>
-                            <FormControl>
-                                <Button type="button" variant="outline" onClick={() => alert('Función de carga de PDF próximamente!')}>
-                                    <FileUp className="mr-2 h-4 w-4" />
-                                    Seleccionar PDF
-                                </Button>
-                            </FormControl>
-                             <FormDescription>Sube un archivo en formato PDF.</FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                    />
+                     <div className="space-y-4 text-center text-muted-foreground p-8">
+                       <p>La carga de documentos PDF estará disponible próximamente.</p>
+                     </div>
                 )}
             </CardContent>
         </Card>
         
         <div className="flex justify-end">
             <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Guardando...' : 'Guardar Contenido'}
-                {!isSubmitting && <Upload className="ml-2 h-4 w-4" />}
+                {isSubmitting ? 'Guardando...' : 'Guardar Tema'}
+                {!isSubmitting && <Save className="ml-2 h-4 w-4" />}
             </Button>
         </div>
       </form>
     </Form>
   );
 }
-
-    
