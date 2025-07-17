@@ -13,7 +13,6 @@ import {
   SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Header } from '@/components/header';
 import { GraduationCap, Sparkles, ChevronDown } from 'lucide-react';
 import { curriculum } from '@/lib/curriculum';
 import { Button } from '@/components/ui/button';
@@ -54,7 +53,7 @@ export default function DashboardLayout({
             {curriculum.map((grade) => (
               <SidebarMenuItem key={grade.slug} asChild>
                 <Collapsible>
-                  <div className="flex w-full items-center">
+                  <div className="flex w-full items-center justify-between group-data-[collapsible=icon]:justify-center">
                     <SidebarMenuButton asChild className="flex-1" tooltip={grade.name}>
                         <Link href={`/dashboard/${grade.slug}`}>
                             <grade.subjects[0].icon />
@@ -62,7 +61,7 @@ export default function DashboardLayout({
                         </Link>
                     </SidebarMenuButton>
                     <CollapsibleTrigger asChild>
-                       <Button variant="ghost" size="icon" className="group-data-[collapsible=icon]:hidden -ml-2 h-8 w-8 shrink-0">
+                       <Button variant="ghost" size="icon" className="group-data-[collapsible=icon]:hidden h-8 w-8 shrink-0">
                          <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                        </Button>
                     </CollapsibleTrigger>
@@ -88,7 +87,6 @@ export default function DashboardLayout({
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        {/* The header is rendered by child pages */}
         {children}
       </SidebarInset>
     </SidebarProvider>
