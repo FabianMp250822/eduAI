@@ -36,18 +36,15 @@ export default function DashboardLayout({
       <SidebarProvider>
         <Sidebar>
           <SidebarHeader>
-            <div className="flex items-center gap-2">
-              <Link href="/dashboard" className="flex items-center gap-2">
+            <div className="flex items-center justify-center p-2 group-data-[collapsible=icon]:p-0">
+              <Link href="/dashboard">
                  <Image 
                     src="https://firebasestorage.googleapis.com/v0/b/edusync-ai-ldeq7.firebasestorage.app/o/image-removebg-preview.png?alt=media&token=4da022e6-4a05-4662-b40b-644569d3e291" 
                     alt="EduSync AI Logo"
-                    width={40}
-                    height={40}
-                    className="h-8 w-8"
+                    width={150}
+                    height={150}
+                    className="h-16 w-auto transition-all group-data-[collapsible=icon]:h-10"
                   />
-                  <h2 className="font-headline text-lg font-semibold tracking-tight">
-                    EduSync AI
-                  </h2>
               </Link>
             </div>
           </SidebarHeader>
