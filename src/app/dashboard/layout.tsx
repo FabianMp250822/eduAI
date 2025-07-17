@@ -18,7 +18,7 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { GraduationCap, Sparkles, ChevronDown } from 'lucide-react';
+import { GraduationCap, Sparkles, ChevronDown, Shield } from 'lucide-react';
 import { curriculum } from '@/lib/curriculum';
 import { Button } from '@/components/ui/button';
 import { MobileNav } from '@/components/mobile-nav';
@@ -105,6 +105,16 @@ export default function DashboardLayout({
                   <div className="flex items-center justify-center group-data-[collapsible=icon]:hidden">
                       <LicenseStatus />
                   </div>
+                  <SidebarMenu className="group-data-[collapsible=icon]:hidden">
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild variant="ghost" size="sm" className="justify-center text-xs">
+                          <Link href="/admin/login">
+                            <Shield />
+                            <span>Acceso Admin</span>
+                          </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
                </div>
             </SidebarFooter>
           </Sidebar>
