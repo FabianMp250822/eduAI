@@ -4,28 +4,25 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     match /licenses/{licenseId} {
-      // Permite a cualquiera LEER un documento de licencia para validarlo.
       allow get: if true;
-      
-      // Permite ACTUALIZAR un documento de licencia bajo dos condiciones:
-      // 1. Para incrementar el contador de instalaciones al activar una nueva.
-      // 2. Para incrementar los puntos del usuario.
-      allow update: if (request.resource.data.currentInstalls == resource.data.currentInstalls + 1
-                       && request.resource.data.currentInstalls <= resource.data.maxInstalls)
+      allow update: if request.resource.data.currentInstalls == resource.data.currentInstalls + 1
+                       && request.resource.data.currentInstalls <= resource.data.maxInstalls
                        || (request.resource.data.points > resource.data.points);
-                     
-      // Nadie puede crear o borrar licencias desde la app.
       allow create, delete: if false;
-
-      // Permite la creación de documentos en las subcolecciones 'actions' (para puntos)
-      // y 'ai_generated_content' (para consultas de IA).
-      // Esto es seguro porque un usuario solo puede escribir dentro del documento de su propia licencia.
-      match /{subcollection}/{docId} {
-        allow create: if subcollection == 'actions' || subcollection == 'ai_generated_content';
-      }
     }
 
-    // Bloquea el acceso a cualquier otra colección por defecto.
+    match /actions/{actionId} {
+      // Allow creating an action if the licenseKey in the new document exists in the 'licenses' collection.
+      allow create: if exists(/databases/$(database)/documents/licenses/$(request.resource.data.licenseKey));
+      allow read, update, delete: if false;
+    }
+
+    match /ai_content/{contentId} {
+       // Allow creating content if the licenseKey in the new document exists in the 'licenses' collection.
+      allow create: if exists(/databases/$(database)/documents/licenses/$(request.resource.data.licenseKey));
+      allow read, update, delete: if false;
+    }
+    
     match /{document=**} {
       allow read, write: if false;
     }

@@ -1,6 +1,6 @@
 
 import { db } from '@/lib/firebase';
-import { doc, runTransaction, getDoc, setDoc, serverTimestamp, increment } from 'firebase/firestore';
+import { doc, runTransaction, serverTimestamp, increment } from 'firebase/firestore';
 
 /**
  * Adds points for a specific user action if it hasn't been rewarded before.
@@ -16,7 +16,7 @@ export async function addPointsForAction(actionId: string, points: number): Prom
   }
 
   const licenseRef = doc(db, 'licenses', licenseKey);
-  const actionRef = doc(db, `licenses/${licenseKey}/actions`, actionId);
+  const actionRef = doc(db, 'actions', actionId);
 
   try {
     await runTransaction(db, async (transaction) => {
@@ -33,6 +33,7 @@ export async function addPointsForAction(actionId: string, points: number): Prom
 
       // Mark the action as completed.
       transaction.set(actionRef, {
+        licenseKey: licenseKey, // Associate action with license
         completedAt: serverTimestamp(),
         pointsAwarded: points,
       });

@@ -20,6 +20,7 @@ export interface DBSyncTrack {
 // Stores AI-generated content, categorized by grade and subject.
 export interface DBAiContent {
   id: string; // Primary key (e.g., a timestamp or UUID)
+  licenseKey: string;
   query: string;
   content: string;
   gradeSlug: string;
@@ -37,14 +38,10 @@ class AppDatabase extends Dexie {
 
   constructor() {
     super('EduSyncAI_DB');
-    this.version(2).stores({
+    this.version(3).stores({
       topics: '&slug',
       syncTracker: '&slug, syncedAt',
-      aiContent: '&id, gradeSlug, subjectSlug', // New table
-    });
-    // Handle schema upgrade from version 1 if needed
-    this.on('populate', (tx) => {
-        // This event only fires when the database is first created.
+      aiContent: '&id, licenseKey, gradeSlug, subjectSlug', // Added licenseKey
     });
   }
 }

@@ -39,8 +39,12 @@ export function AskAiForm() {
 
   const saveAiContent = async (query: string, response: GenerateEducationalContentOutput) => {
       const id = `ai_${Date.now()}`;
+      const licenseKey = localStorage.getItem('licenseKey');
+       if (!licenseKey) return;
+
       const newContent = {
         id,
+        licenseKey,
         query,
         content: response.content,
         gradeSlug: response.gradeSlug,
@@ -48,7 +52,6 @@ export function AskAiForm() {
         createdAt: new Date(),
       };
 
-      // 1. Save locally to Dexie
       try {
         await db.aiContent.put(newContent);
         console.log('Contenido de IA guardado localmente.');
@@ -56,13 +59,9 @@ export function AskAiForm() {
         console.error("Error al guardar en la base de datos local:", e);
       }
 
-      // 2. Save to Firebase if online
       if (navigator.onLine) {
-        const licenseKey = localStorage.getItem('licenseKey');
-        if (!licenseKey) return;
-        
         try {
-            const docRef = doc(firebaseDb, `licenses/${licenseKey}/ai_generated_content`, id);
+            const docRef = doc(firebaseDb, `ai_content`, id);
             await setDoc(docRef, {
                 ...newContent,
                 syncedAt: serverTimestamp(),
