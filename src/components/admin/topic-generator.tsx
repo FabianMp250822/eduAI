@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { generateAndSaveTopics } from '@/ai/flows/generate-topics-flow';
+import { checkTopicsExist } from '@/lib/firebase-service';
 import { curriculum } from '@/lib/curriculum';
-import { Bot, Loader, CheckCircle } from 'lucide-react';
+import { Bot, Loader, CheckCircle, SkipForward } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 
@@ -47,24 +48,37 @@ export function TopicGenerator() {
 
     for (let i = 0; i < totalTasks; i++) {
         const subjectInfo = mathSubjects[i];
-        try {
-            setCurrentTask(`Generando temas para ${subjectInfo.subjectName} en ${subjectInfo.gradeName}...`);
-            await generateAndSaveTopics(subjectInfo);
+        
+        setCurrentTask(`Verificando temas existentes para ${subjectInfo.subjectName} en ${subjectInfo.gradeName}...`);
+        
+        const topicsExist = await checkTopicsExist(subjectInfo.gradeSlug, subjectInfo.subjectSlug);
+        
+        if (topicsExist) {
             toast({
-                title: "Éxito parcial",
-                description: `Temas para ${subjectInfo.subjectName} (${subjectInfo.gradeName}) generados y guardados.`,
-                className: "bg-green-100 dark:bg-green-900",
+                title: "Generación Omitida",
+                description: `Ya existen temas para ${subjectInfo.subjectName} (${subjectInfo.gradeName}).`,
+                action: <SkipForward className="h-5 w-5" />,
             });
-        } catch (error) {
-            console.error(`Error generando temas para ${subjectInfo.subjectName}:`, error);
-            toast({
-                variant: "destructive",
-                title: "Error en Generación",
-                description: `No se pudieron generar temas para ${subjectInfo.subjectName}. Revisa la consola para más detalles.`,
-            });
-        } finally {
-            setProgress(((i + 1) / totalTasks) * 100);
+        } else {
+            try {
+                setCurrentTask(`Generando temas para ${subjectInfo.subjectName} en ${subjectInfo.gradeName}...`);
+                await generateAndSaveTopics(subjectInfo);
+                toast({
+                    title: "Éxito parcial",
+                    description: `Temas para ${subjectInfo.subjectName} (${subjectInfo.gradeName}) generados y guardados.`,
+                    className: "bg-green-100 dark:bg-green-900",
+                });
+            } catch (error) {
+                console.error(`Error generando temas para ${subjectInfo.subjectName}:`, error);
+                toast({
+                    variant: "destructive",
+                    title: "Error en Generación",
+                    description: `No se pudieron generar temas para ${subjectInfo.subjectName}. Revisa la consola para más detalles.`,
+                });
+            }
         }
+
+        setProgress(((i + 1) / totalTasks) * 100);
     }
 
     setCurrentTask("¡Proceso completado!");
@@ -77,7 +91,7 @@ export function TopicGenerator() {
         <Bot className="h-4 w-4" />
         <AlertTitle>¡Atención!</AlertTitle>
         <AlertDescription>
-          Esta acción es intensiva y puede tardar varios minutos. Realizará múltiples llamadas a la IA y guardará los resultados en la base de datos. No recargues la página durante el proceso.
+          Esta acción es intensiva y puede tardar varios minutos. Verificará si ya existen temas y, de no ser así, realizará llamadas a la IA y guardará los resultados en la base de datos. No recargues la página durante el proceso.
         </AlertDescription>
       </Alert>
       

@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase';
-import { doc, setDoc, arrayUnion } from 'firebase/firestore';
+import { doc, setDoc, arrayUnion, getDoc } from 'firebase/firestore';
 import type { Topic } from '@/lib/curriculum';
 
 interface TopicToSave extends Omit<Topic, 'slug' | 'progress'> {
@@ -7,6 +7,29 @@ interface TopicToSave extends Omit<Topic, 'slug' | 'progress'> {
     progress: number;
     content?: string; // Add content field
 }
+
+/**
+ * Verifica si ya existen temas para una asignatura en Firestore.
+ * @param gradeSlug El slug del grado.
+ * @param subjectSlug El slug de la materia.
+ * @returns {Promise<boolean>} True si existen temas, false en caso contrario.
+ */
+export async function checkTopicsExist(gradeSlug: string, subjectSlug: string): Promise<boolean> {
+  const docId = `${gradeSlug}_${subjectSlug}`;
+  const subjectRef = doc(db, 'subjects', docId);
+  try {
+    const docSnap = await getDoc(subjectRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      return data.topics && data.topics.length > 0;
+    }
+    return false;
+  } catch (error) {
+    console.error("Error al verificar la existencia de temas:", error);
+    return false; // Asumir que no existen en caso de error
+  }
+}
+
 
 /**
  * Guarda o actualiza los temas de una asignatura en Firestore.
