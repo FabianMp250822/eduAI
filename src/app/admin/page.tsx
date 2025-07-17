@@ -1,3 +1,4 @@
+import { ContentForm } from '@/components/admin/content-form';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 export default function AdminDashboardPage() {
@@ -8,11 +9,11 @@ export default function AdminDashboardPage() {
         <CardHeader>
           <CardTitle>Gestión de Contenido</CardTitle>
           <CardDescription>
-            Desde aquí podrás añadir, editar y eliminar los recursos educativos de la plataforma.
+            Utiliza este formulario para añadir nuevos temas a las asignaturas de la plataforma.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p>Próximamente, aquí encontrarás el formulario para cargar nuevo material.</p>
+          <ContentForm />
         </CardContent>
       </Card>
     </div>
