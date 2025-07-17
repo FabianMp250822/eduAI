@@ -17,6 +17,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { GraduationCap, Sparkles, ChevronDown } from 'lucide-react';
 import { curriculum } from '@/lib/curriculum';
 import { Button } from '@/components/ui/button';
+import { MobileNav } from '@/components/mobile-nav';
 
 export default function DashboardLayout({
   children,
@@ -52,17 +53,17 @@ export default function DashboardLayout({
             </SidebarMenuItem>
 
             {curriculum.map((grade) => {
-              const GradeIcon = grade.subjects[0].icon;
+              const GradeIcon = grade.subjects[0]?.icon || GraduationCap;
               return (
                 <SidebarMenuItem key={grade.slug} asChild>
                   <Collapsible>
                     <div className="flex items-center justify-between group-data-[collapsible=icon]:justify-center">
-                      <Link href={`/dashboard/${grade.slug}`} className="flex-1">
-                        <SidebarMenuButton className="w-full justify-start" tooltip={grade.name}>
-                          <GradeIcon />
-                          <span>{grade.name}</span>
-                        </SidebarMenuButton>
-                      </Link>
+                       <SidebarMenuButton asChild tooltip={grade.name} className="flex-1 justify-start">
+                         <Link href={`/dashboard/${grade.slug}`} >
+                            <GradeIcon />
+                            <span>{grade.name}</span>
+                         </Link>
+                      </SidebarMenuButton>
                       <CollapsibleTrigger asChild>
                         <Button variant="ghost" size="icon" className="size-8 shrink-0 group-data-[collapsible=icon]:hidden">
                             <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
@@ -93,6 +94,7 @@ export default function DashboardLayout({
       <SidebarInset>
         {children}
       </SidebarInset>
+      <MobileNav />
     </SidebarProvider>
   );
 }
