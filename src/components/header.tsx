@@ -2,6 +2,7 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
 import { Award } from 'lucide-react';
 import { ConnectivityStatus } from './connectivity-status';
+import { LicenseStatus } from './license-status';
 
 type HeaderProps = {
   title: string;
@@ -14,7 +15,8 @@ export function Header({ title }: HeaderProps) {
         <SidebarTrigger className="lg:hidden" />
         <h1 className="font-headline text-xl font-semibold tracking-tight">{title}</h1>
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 md:gap-4">
+        <LicenseStatus />
         <Badge variant="secondary" className="gap-2 py-1.5 px-3">
           <Award className="h-4 w-4 text-orange-500" />
           <span className="font-semibold">1,250 Puntos</span>

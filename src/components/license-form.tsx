@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent } from '@/components/ui/card';
 import { db } from '@/lib/firebase';
-import { doc, runTransaction, serverTimestamp } from "firebase/firestore";
+import { doc, runTransaction } from "firebase/firestore";
 
 const FormSchema = z.object({
   licenseKey: z.string().min(1, 'La clave de licencia es obligatoria.'),
@@ -55,17 +55,14 @@ export function LicenseForm() {
           throw new Error("Se ha alcanzado el número máximo de instalaciones para esta licencia.");
         }
         
-        // Si todo está bien, incrementamos el contador
         transaction.update(licenseRef, { currentInstalls: currentInstalls + 1 });
       });
       
-      // Si la transacción es exitosa, procedemos
       toast({
         title: "Validación Exitosa",
         description: "¡Bienvenido a EduSync AI!",
       });
       
-      // Guardamos la licencia en el almacenamiento local para futuras sesiones
       localStorage.setItem('licenseKey', licenseKey);
 
       router.push('/dashboard');
