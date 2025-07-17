@@ -26,13 +26,17 @@ export function LicenseValidator({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // Assume the license is valid locally to allow offline access immediately.
+    setIsValid(true);
+    setIsValidating(false);
+
     const licenseRef = doc(db, 'licenses', licenseKey);
     const unsubscribe = onSnapshot(licenseRef, (doc) => {
+      // This part only runs when there is a connection to Firebase
       if (doc.exists()) {
         const licenseData = doc.data() as LicenseData;
-        if (licenseData.status === 'active') {
-          setIsValid(true);
-        } else {
+        if (licenseData.status !== 'active') {
+          // The license is confirmed to be inactive.
           setIsValid(false);
           localStorage.removeItem('licenseKey');
           toast({
@@ -43,6 +47,7 @@ export function LicenseValidator({ children }: { children: React.ReactNode }) {
           router.push('/');
         }
       } else {
+        // The license is confirmed to not exist anymore.
         setIsValid(false);
         localStorage.removeItem('licenseKey');
         toast({
@@ -52,17 +57,11 @@ export function LicenseValidator({ children }: { children: React.ReactNode }) {
         });
         router.push('/');
       }
-      setIsValidating(false);
     }, (error) => {
-      console.error("Error listening to license status:", error);
-      setIsValidating(false);
-      // In case of network error, we might optimistically assume validity
-      // or redirect. For now, we'll let them stay but show a toast.
-       toast({
-            variant: 'destructive',
-            title: 'Error de Red',
-            description: 'No se pudo verificar el estado de la licencia. Algunas funciones pueden no estar disponibles sin conexión.',
-        });
+      // This error handler is key for offline mode.
+      // It triggers when the client can't connect to Firestore.
+      console.warn("No se pudo verificar el estado de la licencia (posiblemente sin conexión). Se permitirá el acceso con la licencia local.");
+      // We don't do anything, allowing the user to continue with their offline session.
     });
 
     return () => unsubscribe();
@@ -79,8 +78,8 @@ export function LicenseValidator({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // If the license is not valid (after online check), show redirecting state.
   if (!isValid) {
-    // This case handles the flicker before redirection
      return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 md:p-8">
         <div className="flex items-center gap-2 text-destructive">
@@ -91,5 +90,6 @@ export function LicenseValidator({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // If we reach here, the license is considered valid (either locally or confirmed online).
   return <>{children}</>;
 }
