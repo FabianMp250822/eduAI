@@ -43,10 +43,10 @@ export default function DashboardLayout({
         <SidebarContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Ask AI a question">
+              <SidebarMenuButton asChild tooltip="Pregúntale a la IA">
                 <Link href="/dashboard/ask-ai">
                   <Sparkles />
-                  <span>Ask the AI</span>
+                  <span>Pregúntale a la IA</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

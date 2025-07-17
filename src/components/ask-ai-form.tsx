@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Sparkles } from 'lucide-react';
 
 const FormSchema = z.object({
-  query: z.string().min(10, 'Please enter a query of at least 10 characters.'),
+  query: z.string().min(10, 'Por favor, introduce una consulta de al menos 10 caracteres.'),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -39,7 +39,7 @@ export function AskAiForm() {
       const response = await generateEducationalContent({ query: data.query });
       setResult(response.content);
     } catch (e) {
-      setError('An error occurred while generating content. Please try again.');
+      setError('Ocurrió un error al generar el contenido. Por favor, inténtalo de nuevo.');
       console.error(e);
     } finally {
       setLoading(false);
@@ -50,9 +50,9 @@ export function AskAiForm() {
     <div className="space-y-8">
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline text-2xl">Ask the AI</CardTitle>
+          <CardTitle className="font-headline text-2xl">Pregúntale a la IA</CardTitle>
           <CardDescription>
-            Have a question? Ask our AI assistant for help on any subject from preschool to eleventh grade.
+            ¿Tienes una pregunta? Pide ayuda a nuestro asistente de IA sobre cualquier materia desde preescolar hasta undécimo grado.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -63,10 +63,10 @@ export function AskAiForm() {
                 name="query"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Your Question</FormLabel>
+                    <FormLabel>Tu Pregunta</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="For example: 'Explain the water cycle for a third-grade student.'"
+                        placeholder="Por ejemplo: 'Explica el ciclo del agua para un estudiante de tercer grado.'"
                         className="resize-none"
                         {...field}
                       />
@@ -76,7 +76,7 @@ export function AskAiForm() {
                 )}
               />
               <Button type="submit" disabled={loading}>
-                {loading ? 'Generating...' : 'Generate Content'}
+                {loading ? 'Generando...' : 'Generar Contenido'}
                 {!loading && <Sparkles className="ml-2 h-4 w-4" />}
               </Button>
             </form>
@@ -113,7 +113,7 @@ export function AskAiForm() {
           <CardHeader>
             <CardTitle className="font-headline flex items-center gap-2">
               <Sparkles className="text-primary" />
-              AI Generated Content
+              Contenido Generado por IA
             </CardTitle>
           </CardHeader>
           <CardContent>

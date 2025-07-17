@@ -17,7 +17,7 @@ export function Header({ title }: HeaderProps) {
       <div className="flex items-center gap-4">
         <Badge variant="secondary" className="gap-2 py-1.5 px-3">
           <Award className="h-4 w-4 text-amber-500" />
-          <span className="font-semibold">1,250 Points</span>
+          <span className="font-semibold">1,250 Puntos</span>
         </Badge>
         <ConnectivityStatus />
       </div>

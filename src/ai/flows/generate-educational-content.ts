@@ -12,13 +12,13 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GenerateEducationalContentInputSchema = z.object({
-  query: z.string().describe('The query from the student.'),
+  query: z.string().describe('La consulta del estudiante.'),
 });
 
 export type GenerateEducationalContentInput = z.infer<typeof GenerateEducationalContentInputSchema>;
 
 const GenerateEducationalContentOutputSchema = z.object({
-  content: z.string().describe('The generated educational content.'),
+  content: z.string().describe('El contenido educativo generado.'),
 });
 
 export type GenerateEducationalContentOutput = z.infer<typeof GenerateEducationalContentOutputSchema>;
@@ -31,11 +31,11 @@ const generateEducationalContentPrompt = ai.definePrompt({
   name: 'generateEducationalContentPrompt',
   input: {schema: GenerateEducationalContentInputSchema},
   output: {schema: GenerateEducationalContentOutputSchema},
-  prompt: `You are an AI assistant that generates educational content for students from preschool to eleventh grade.
+  prompt: `Eres un asistente de IA que genera contenido educativo en español para estudiantes desde preescolar hasta undécimo grado.
 
-  Please provide relevant curriculum-aligned information based on the student's query.
+  Proporciona información relevante y alineada con el currículo escolar basada en la consulta del estudiante.
 
-  Query: {{{query}}} `,
+  Consulta: {{{query}}} `,
 });
 
 const generateEducationalContentFlow = ai.defineFlow(

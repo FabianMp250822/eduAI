@@ -37,7 +37,7 @@ export function ConnectivityStatus() {
       ) : (
         <WifiOff className="h-3.5 w-3.5" />
       )}
-      <span className="text-xs font-medium">{isOnline ? 'Online' : 'Offline'}</span>
+      <span className="text-xs font-medium">{isOnline ? 'En línea' : 'Sin conexión'}</span>
     </Badge>
   );
 }

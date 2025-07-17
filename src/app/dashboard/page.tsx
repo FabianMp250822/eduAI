@@ -7,11 +7,11 @@ import { ArrowRight } from 'lucide-react';
 export default function DashboardPage() {
   return (
     <>
-      <Header title="All Grades" />
+      <Header title="Todos los Grados" />
       <main className="p-4 sm:p-6">
         <div className="mb-6">
-            <h2 className="font-headline text-2xl font-bold tracking-tight">Select a Grade</h2>
-            <p className="text-muted-foreground">Choose a grade level to begin exploring subjects and topics.</p>
+            <h2 className="font-headline text-2xl font-bold tracking-tight">Selecciona un Grado</h2>
+            <p className="text-muted-foreground">Elige un nivel de grado para comenzar a explorar materias y temas.</p>
         </div>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {curriculum.map((grade) => {

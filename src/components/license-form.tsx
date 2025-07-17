@@ -11,7 +11,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Card, CardContent } from '@/components/ui/card';
 
 const FormSchema = z.object({
-  licenseKey: z.string().min(1, 'License key is required.'),
+  licenseKey: z.string().min(1, 'La clave de licencia es obligatoria.'),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -30,7 +30,7 @@ export function LicenseForm() {
   async function onSubmit(data: FormValues) {
     // Placeholder for actual Firebase license validation
     // and anonymous sign-in.
-    console.log('Validating license key:', data.licenseKey);
+    console.log('Validando clave de licencia:', data.licenseKey);
 
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -38,16 +38,16 @@ export function LicenseForm() {
     // Simulate a successful validation
     if (data.licenseKey.toLowerCase() === 'test-key') {
       toast({
-        title: "Validation Successful",
-        description: "Welcome to EduSync AI!",
+        title: "Validación Exitosa",
+        description: "¡Bienvenido a EduSync AI!",
       });
       // On success, redirect to the dashboard
       router.push('/dashboard');
     } else {
        toast({
         variant: "destructive",
-        title: "Validation Failed",
-        description: "Invalid license key. Please try again.",
+        title: "Validación Fallida",
+        description: "Clave de licencia inválida. Por favor, inténtalo de nuevo.",
       });
     }
   }
@@ -62,19 +62,19 @@ export function LicenseForm() {
               name="licenseKey"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>License Key</FormLabel>
+                  <FormLabel>Clave de Licencia</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter your license key" {...field} />
+                    <Input placeholder="Ingresa tu clave de licencia" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Use 'test-key' for a demo.
+                    Usa 'test-key' para una demostración.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Validating...' : 'Activate License'}
+              {form.formState.isSubmitting ? 'Validando...' : 'Activar Licencia'}
             </Button>
           </form>
         </Form>

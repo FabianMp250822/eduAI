@@ -12,7 +12,7 @@ export default function Home() {
           </h1>
         </div>
         <p className="text-muted-foreground max-w-md text-center">
-          Welcome! Please enter your license key to begin your personalized learning journey.
+          ¡Bienvenido! Ingresa tu clave de licencia para comenzar tu viaje de aprendizaje personalizado.
         </p>
       </div>
       <div className="mt-8 w-full max-w-sm">

@@ -26,7 +26,7 @@ export default function GradePage({ params }: GradePageProps) {
       <Header title={grade.name} />
       <main className="p-4 sm:p-6">
         <div className="mb-6">
-          <h2 className="font-headline text-2xl font-bold tracking-tight">Subjects in {grade.name}</h2>
+          <h2 className="font-headline text-2xl font-bold tracking-tight">Materias en {grade.name}</h2>
           <p className="text-muted-foreground">{grade.description}</p>
         </div>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -56,7 +56,7 @@ export default function GradePage({ params }: GradePageProps) {
                 <CardFooter>
                     <Badge variant="secondary" className="gap-2">
                         <BookOpen className="h-3.5 w-3.5" />
-                        <span>{subject.topics.length} Topics</span>
+                        <span>{subject.topics.length} Temas</span>
                     </Badge>
                 </CardFooter>
               </Card>

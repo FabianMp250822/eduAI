@@ -38,7 +38,7 @@ export default function SubjectPage({ params }: SubjectPageProps) {
                 <p className="text-muted-foreground max-w-prose">{subject.description}</p>
             </div>
             <Button>
-                Download Subject for Offline
+                Descargar materia para usar sin conexión
             </Button>
         </div>
 
@@ -51,14 +51,14 @@ export default function SubjectPage({ params }: SubjectPageProps) {
                   <CardDescription className="mt-1">{topic.description}</CardDescription>
                   <div className="mt-3 flex items-center gap-3">
                     <Progress value={topic.progress} className="h-2 w-full max-w-xs" />
-                    <span className="text-sm font-medium text-muted-foreground">{topic.progress}% complete</span>
+                    <span className="text-sm font-medium text-muted-foreground">{topic.progress}% completado</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   {topic.progress === 100 && <CheckCircle2 className="h-6 w-6 text-green-500" />}
                    <Button variant="outline" size="sm" asChild>
                      <Link href="#">
-                        Start Learning <ArrowRight className="ml-2 h-4 w-4" />
+                        Comenzar a aprender <ArrowRight className="ml-2 h-4 w-4" />
                      </Link>
                    </Button>
                 </div>
