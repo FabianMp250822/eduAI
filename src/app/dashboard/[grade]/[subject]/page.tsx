@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams, notFound } from 'next/navigation';
+import { useParams, notFound, useRouter } from 'next/navigation';
 import { findSubject } from '@/lib/curriculum';
 import { Card, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Header } from '@/components/header';
@@ -10,9 +10,16 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle2, Loader } from 'lucide-react';
 import { useSyncStatus } from '@/hooks/use-sync';
+import { addPointsForAction } from '@/lib/points';
+import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 export default function SubjectPage() {
   const params = useParams();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [visitedTopics, setVisitedTopics] = useState<Set<string>>(new Set());
+
   const grade = Array.isArray(params.grade) ? params.grade[0] : params.grade;
   const subjectSlug = Array.isArray(params.subject) ? params.subject[0] : params.subject;
 
@@ -22,6 +29,22 @@ export default function SubjectPage() {
   if (!subject) {
     notFound();
   }
+
+  const handleTopicClick = async (topicSlug: string) => {
+    if (!visitedTopics.has(topicSlug)) {
+        const success = await addPointsForAction(`read_topic_${topicSlug}`, 5);
+        if (success) {
+            toast({
+                title: "¡Puntos ganados!",
+                description: "Has ganado 5 puntos por empezar un nuevo tema.",
+            });
+            setVisitedTopics(prev => new Set(prev).add(topicSlug));
+        }
+    }
+    // For now, we don't have a specific page for the topic, so we just log it.
+    // In a real scenario, you would navigate to the topic page.
+    // router.push(`/dashboard/${grade}/${subjectSlug}/${topicSlug}`);
+  };
 
   const SubjectIcon = subject.icon;
 
@@ -61,11 +84,9 @@ export default function SubjectPage() {
                   <div className="flex items-center gap-4 pl-4">
                     {syncing && <Loader className="h-5 w-5 animate-spin text-muted-foreground" />}
                     {isSynced && !syncing && <CheckCircle2 className="h-5 w-5 text-green-500" />}
-                    <Button variant="outline" size="sm" asChild>
-                       <Link href="#">
-                          Comenzar <ArrowRight className="ml-2 h-4 w-4 hidden sm:inline" />
-                       </Link>
-                     </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleTopicClick(topic.slug)}>
+                        Comenzar <ArrowRight className="ml-2 h-4 w-4 hidden sm:inline" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

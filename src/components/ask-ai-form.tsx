@@ -11,6 +11,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sparkles } from 'lucide-react';
+import { addPointsForAction } from '@/lib/points';
+import { useToast } from '@/hooks/use-toast';
+
 
 const FormSchema = z.object({
   query: z.string().min(10, 'Por favor, introduce una consulta de al menos 10 caracteres.'),
@@ -22,6 +25,7 @@ export function AskAiForm() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
@@ -38,6 +42,14 @@ export function AskAiForm() {
     try {
       const response = await generateEducationalContent({ query: data.query });
       setResult(response.content);
+      
+      const success = await addPointsForAction(`ask_ai_${Date.now()}`, 10);
+      if (success) {
+        toast({
+          title: "¡Puntos ganados!",
+          description: "Has ganado 10 puntos por usar el asistente de IA.",
+        });
+      }
     } catch (e) {
       setError('Ocurrió un error al generar el contenido. Por favor, inténtalo de nuevo.');
       console.error(e);

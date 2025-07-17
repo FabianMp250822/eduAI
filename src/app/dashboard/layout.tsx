@@ -17,13 +17,12 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { GraduationCap, Sparkles, ChevronDown, Award } from 'lucide-react';
+import { GraduationCap, Sparkles, ChevronDown } from 'lucide-react';
 import { curriculum } from '@/lib/curriculum';
 import { Button } from '@/components/ui/button';
 import { MobileNav } from '@/components/mobile-nav';
 import { SyncProvider } from '@/hooks/use-sync';
 import { LicenseStatus } from '@/components/license-status';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
 export default function DashboardLayout({
@@ -104,10 +103,6 @@ export default function DashboardLayout({
                 <div className="flex items-center justify-center group-data-[collapsible=icon]:hidden">
                     <LicenseStatus />
                 </div>
-                <Badge variant="secondary" className="gap-2 py-1.5 px-3 group-data-[collapsible=icon]:hidden">
-                    <Award className="h-4 w-4 text-orange-500" />
-                    <span className="font-semibold">1,250 Puntos</span>
-                </Badge>
              </div>
           </SidebarFooter>
         </Sidebar>

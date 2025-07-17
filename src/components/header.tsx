@@ -1,5 +1,6 @@
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { ConnectivityStatus } from './connectivity-status';
+import { UserPoints } from './user-points';
 
 type HeaderProps = {
   title: string;
@@ -14,6 +15,7 @@ export function Header({ title }: HeaderProps) {
       </div>
       <div className="flex items-center gap-2 md:gap-4">
         <ConnectivityStatus />
+        <UserPoints />
       </div>
     </header>
   );
