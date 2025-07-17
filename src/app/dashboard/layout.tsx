@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import {
   SidebarProvider,
@@ -50,39 +51,42 @@ export default function DashboardLayout({
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            {curriculum.map((grade) => (
-              <SidebarMenuItem key={grade.slug} asChild>
-                <Collapsible>
-                  <div className="flex w-full items-center justify-between group-data-[collapsible=icon]:justify-center">
-                    <SidebarMenuButton asChild className="flex-1" tooltip={grade.name}>
-                        <Link href={`/dashboard/${grade.slug}`}>
-                            <grade.subjects[0].icon />
-                            <span>{grade.name}</span>
-                        </Link>
-                    </SidebarMenuButton>
-                    <CollapsibleTrigger asChild>
-                       <Button variant="ghost" size="icon" className="group-data-[collapsible=icon]:hidden h-8 w-8 shrink-0">
-                         <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                       </Button>
-                    </CollapsibleTrigger>
-                  </div>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {grade.subjects.map((subject) => (
-                        <SidebarMenuSubItem key={subject.slug}>
-                          <SidebarMenuSubButton asChild>
-                            <Link href={`/dashboard/${grade.slug}/${subject.slug}`}>
-                              <subject.icon />
-                              <span>{subject.name}</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </Collapsible>
-              </SidebarMenuItem>
-            ))}
+            {curriculum.map((grade) => {
+              const GradeIcon = grade.subjects[0].icon;
+              return (
+                <SidebarMenuItem key={grade.slug} asChild>
+                  <Collapsible>
+                    <div className="flex items-center justify-between group-data-[collapsible=icon]:justify-center">
+                      <Link href={`/dashboard/${grade.slug}`} className="flex-1">
+                        <SidebarMenuButton className="w-full justify-start" tooltip={grade.name}>
+                          <GradeIcon />
+                          <span>{grade.name}</span>
+                        </SidebarMenuButton>
+                      </Link>
+                      <CollapsibleTrigger asChild>
+                        <Button variant="ghost" size="icon" className="size-8 shrink-0 group-data-[collapsible=icon]:hidden">
+                            <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                        </Button>
+                      </CollapsibleTrigger>
+                    </div>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {grade.subjects.map((subject) => (
+                          <SidebarMenuSubItem key={subject.slug}>
+                            <SidebarMenuSubButton asChild>
+                              <Link href={`/dashboard/${grade.slug}/${subject.slug}`}>
+                                <subject.icon />
+                                <span>{subject.name}</span>
+                              </Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </SidebarMenuItem>
+              )
+            })}
           </SidebarMenu>
         </SidebarContent>
       </Sidebar>
