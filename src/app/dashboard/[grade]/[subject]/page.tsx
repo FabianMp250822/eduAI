@@ -17,6 +17,26 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
+// Función para convertir un subconjunto de Markdown a HTML
+function markdownToHtml(text: string): string {
+    return text
+      // Encabezados
+      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+      // Negrita
+      .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+      // Cursiva
+      .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+      // Listas no ordenadas (con soporte para anidación simple)
+      .replace(/^\s*\n\*/gm, '*') // Corrige espacios extra antes de las listas
+      .replace(/^\s* \- (.*$)/gim, '<ul>\n\t<li>$1</li>\n</ul>')
+      .replace(/^\s*\* (.*$)/gim, '<ul>\n\t<li>$1</li>\n</ul>')
+      .replace(/<\/ul>\n<ul>/gim, '')
+      // Saltos de línea
+      .replace(/\n/g, '<br />');
+}
+
 export default function SubjectPage() {
   const params = useParams();
   const router = useRouter();
@@ -121,7 +141,7 @@ export default function SubjectPage() {
                     <AccordionTrigger className="font-medium text-left">"{item.query}"</AccordionTrigger>
                     <AccordionContent>
                       <div className="prose prose-sm max-w-none dark:prose-invert"
-                        dangerouslySetInnerHTML={{ __html: item.content.replace(/\n/g, '<br />') }}
+                        dangerouslySetInnerHTML={{ __html: markdownToHtml(item.content) }}
                       />
                     </AccordionContent>
                   </AccordionItem>
