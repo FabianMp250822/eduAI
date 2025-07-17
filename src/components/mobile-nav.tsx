@@ -36,7 +36,7 @@ export function MobileNav() {
           <span className="text-xs">Atrás</span>
         </Button>
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname.startsWith(item.href) && (item.href !== '/dashboard' || pathname === '/dashboard');
           return (
             <Link
               href={item.href}

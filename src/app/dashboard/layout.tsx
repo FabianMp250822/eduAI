@@ -108,10 +108,13 @@ export default function DashboardLayout({
                </div>
             </SidebarFooter>
           </Sidebar>
-          <SidebarInset>
-            {children}
-          </SidebarInset>
-          <MobileNav />
+          <div className="flex flex-col min-h-screen">
+            <SidebarInset className="flex-grow">
+              {children}
+            </SidebarInset>
+            <div className="pb-16 lg:pb-0"></div> {/* Spacer for mobile nav */}
+            <MobileNav />
+          </div>
         </LicenseValidator>
       </SidebarProvider>
     </SyncProvider>
