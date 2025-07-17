@@ -25,11 +25,11 @@ export default function GradePage({ params }: GradePageProps) {
     <>
       <Header title={grade.name} />
       <main className="p-4 sm:p-6">
-        <div className="mb-6">
-          <h2 className="font-headline text-2xl font-bold tracking-tight">Materias en {grade.name}</h2>
-          <p className="text-muted-foreground">{grade.description}</p>
+        <div className="mb-6 md:mb-8">
+          <h2 className="font-headline text-2xl font-bold tracking-tight md:text-3xl">Materias en {grade.name}</h2>
+          <p className="text-muted-foreground mt-1">{grade.description}</p>
         </div>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 md:gap-6 lg:grid-cols-3 xl:grid-cols-4">
           {grade.subjects.map((subject) => (
             <Link href={`/dashboard/${grade.slug}/${subject.slug}`} key={subject.slug} className="group">
               <Card className="flex h-full flex-col overflow-hidden transition-all duration-200 group-hover:border-primary group-hover:shadow-lg">
