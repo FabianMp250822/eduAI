@@ -2,35 +2,10 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    match /licenses/{licenseId} {
-      // Permite leer cualquier licencia para validarla.
-      allow get: if true;
-
-      // Permite actualizar una licencia.
-      // ADVERTENCIA: Esta regla es insegura para producción. Permite
-      // que cualquiera actualice el contador de instalaciones y los puntos.
-      // Se simplifica para fines de desarrollo.
-      allow update: if true;
-      
-      // Nadie puede crear o borrar licencias desde la app.
-      allow create, delete: if false;
-    }
-
-    // Permite crear documentos en la colección 'actions'.
-    // ADVERTENCIA: Esta regla es insegura y permite que cualquiera
-    // escriba en esta colección. Se usa para desarrollo.
-    match /actions/{actionId} {
-      allow create: if true;
-      allow read, update, delete: if false;
-    }
-
-    // Permite crear documentos en la colección 'ai_content'.
-    // ADVERTENCIA: Esta regla es insegura y permite que cualquiera
-    // escriba en esta colección. Se usa para desarrollo.
-    match /ai_content/{contentId} {
-      allow create: if true;
-      allow read, update, delete: if false;
+    // Allows read and write access to the entire database for anyone.
+    // WARNING: This is insecure and should only be used for local development and testing.
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }
