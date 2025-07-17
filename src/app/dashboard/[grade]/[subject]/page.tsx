@@ -7,8 +7,7 @@ import { findSubject } from '@/lib/curriculum';
 import { Card, CardTitle, CardDescription, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, BrainCircuit, Search, Sparkles, Video, FileText, ClipboardCheck, MessageCircleQuestion, Lightbulb } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { ArrowRight, Search, Video, FileText, ClipboardCheck, MessageCircleQuestion } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
@@ -34,7 +33,6 @@ function markdownToHtml(text: string): string {
 
 export default function SubjectPage() {
   const params = useParams();
-  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
 
   const gradeSlug = Array.isArray(params.grade) ? params.grade[0] : params.grade;
@@ -51,11 +49,11 @@ export default function SubjectPage() {
 
   const filteredAiContent = useMemo(() => {
     if (!aiContent) return [];
-    if (!searchTerm) return aiContent;
+    if (!searchTerm) return aiContent.slice().reverse(); // Show newest first
     return aiContent.filter(item =>
       item.query.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.content.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    ).reverse();
   }, [aiContent, searchTerm]);
 
   if (!subject) {
@@ -92,7 +90,7 @@ export default function SubjectPage() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder={`Buscar en ${subject.name}...`}
+            placeholder={`Buscar en las preguntas a la IA...`}
             className="w-full pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -100,8 +98,8 @@ export default function SubjectPage() {
         </div>
         
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
-          {resourceCategories.filter(c => c.slug !== 'ai-questions').map((category) => (
-            <Card key={category.title} className="flex flex-col transition-shadow hover:shadow-lg hover:border-primary/50">
+          {resourceCategories.map((category) => (
+            <Card key={category.slug} className="flex flex-col transition-shadow hover:shadow-lg hover:border-primary/50">
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <category.icon className="h-6 w-6 text-primary" />
@@ -113,10 +111,19 @@ export default function SubjectPage() {
               </CardContent>
               <CardFooter className="flex justify-between items-center">
                 <span className="text-sm font-medium text-muted-foreground">{category.count} recursos</span>
-                 <Button asChild variant="ghost" size="sm" disabled={category.count === 0}>
-                    <Link href={`/dashboard/${gradeSlug}/${subjectSlug}/${category.slug}`}>
-                      Ver <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
+                 <Button 
+                    asChild={category.slug !== 'ai-questions'} 
+                    variant="ghost" 
+                    size="sm" 
+                    disabled={category.slug !== 'ai-questions' && category.count === 0}
+                 >
+                    {category.slug !== 'ai-questions' ? (
+                       <Link href={`/dashboard/${gradeSlug}/${subjectSlug}/${category.slug}`}>
+                        Ver <ArrowRight className="ml-2 h-4 w-4" />
+                       </Link>
+                    ) : (
+                        <span className="text-primary">Ver abajo</span>
+                    )}
                 </Button>
               </CardFooter>
             </Card>
@@ -160,7 +167,18 @@ export default function SubjectPage() {
             <p className="text-muted-foreground">No se encontró contenido que coincida con tu búsqueda.</p>
           </div>
         )}
-
+         {aiContent?.length === 0 && !searchTerm && (
+            <div className="text-center py-10 rounded-lg border-2 border-dashed">
+                <MessageCircleQuestion className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-4 text-lg font-medium">Aún no hay preguntas</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    Usa el asistente para hacer tu primera pregunta en esta materia.
+                </p>
+                <Button asChild className="mt-4">
+                    <Link href="/dashboard/ask-ai">Preguntar a la IA</Link>
+                </Button>
+            </div>
+        )}
       </main>
     </>
   );
