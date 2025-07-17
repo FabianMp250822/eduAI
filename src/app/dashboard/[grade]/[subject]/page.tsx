@@ -65,10 +65,10 @@ export default function SubjectPage() {
   const SubjectIcon = subject.icon;
 
   const resourceCategories = [
-    { title: 'Videos Explicativos', icon: Video, count: 0, description: 'Lecciones en video para un aprendizaje visual.' },
-    { title: 'Guías y Documentos', icon: FileText, count: 0, description: 'Material de lectura y guías de estudio.' },
-    { title: 'Actividades y Evaluaciones', icon: ClipboardCheck, count: 0, description: 'Ejercicios prácticos y quizzes.' },
-    { title: 'Preguntas a la IA', icon: MessageCircleQuestion, count: filteredAiContent?.length ?? 0, description: 'Respuestas de la IA a tus dudas guardadas.' },
+    { slug: 'videos', title: 'Videos Explicativos', icon: Video, count: 0, description: 'Lecciones en video para un aprendizaje visual.' },
+    { slug: 'documents', title: 'Guías y Documentos', icon: FileText, count: 0, description: 'Material de lectura y guías de estudio.' },
+    { slug: 'activities', title: 'Actividades y Evaluaciones', icon: ClipboardCheck, count: 0, description: 'Ejercicios prácticos y quizzes.' },
+    { slug: 'ai-questions', title: 'Preguntas a la IA', icon: MessageCircleQuestion, count: filteredAiContent?.length ?? 0, description: 'Respuestas de la IA a tus dudas guardadas.' },
   ];
 
   return (
@@ -100,7 +100,7 @@ export default function SubjectPage() {
         </div>
         
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
-          {resourceCategories.map((category) => (
+          {resourceCategories.filter(c => c.slug !== 'ai-questions').map((category) => (
             <Card key={category.title} className="flex flex-col transition-shadow hover:shadow-lg hover:border-primary/50">
               <CardHeader>
                 <div className="flex items-center gap-3">
@@ -113,8 +113,10 @@ export default function SubjectPage() {
               </CardContent>
               <CardFooter className="flex justify-between items-center">
                 <span className="text-sm font-medium text-muted-foreground">{category.count} recursos</span>
-                 <Button variant="ghost" size="sm" disabled={category.count === 0}>
-                    Ver <ArrowRight className="ml-2 h-4 w-4" />
+                 <Button asChild variant="ghost" size="sm" disabled={category.count === 0}>
+                    <Link href={`/dashboard/${gradeSlug}/${subjectSlug}/${category.slug}`}>
+                      Ver <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
                 </Button>
               </CardFooter>
             </Card>
@@ -123,10 +125,12 @@ export default function SubjectPage() {
 
         {filteredAiContent && filteredAiContent.length > 0 && (
           <div className="space-y-4">
-            <h3 className="font-headline text-xl font-bold tracking-tight flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              Contenido Generado por IA
-            </h3>
+             <div className="flex items-center gap-3">
+                <MessageCircleQuestion className="h-6 w-6 text-primary" />
+                <h3 className="font-headline text-xl font-bold tracking-tight">
+                  Preguntas a la IA
+                </h3>
+             </div>
             <Card>
               <CardContent className="p-4">
                 <Accordion type="single" collapsible className="w-full">
@@ -153,7 +157,7 @@ export default function SubjectPage() {
         
         {searchTerm && filteredAiContent?.length === 0 && (
           <div className="text-center py-10">
-            <p className="text-muted-foreground">No se encontró contenido de IA que coincida con tu búsqueda.</p>
+            <p className="text-muted-foreground">No se encontró contenido que coincida con tu búsqueda.</p>
           </div>
         )}
 
