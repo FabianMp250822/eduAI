@@ -9,7 +9,23 @@ import {
   Languages,
   Landmark,
   FileCode,
-  Aperture
+  Aperture,
+  HeartHand,
+  PersonStanding,
+  BrainCircuit,
+  Lightbulb,
+  Music,
+  Drama,
+  Church,
+  Cpu,
+  Handshake,
+  BookOpen,
+  Sigma,
+  TestTube,
+  Scale,
+  Bot,
+  Columns,
+  DollarSign
 } from 'lucide-react';
 
 export interface Topic {
@@ -36,119 +52,74 @@ export interface Grade {
 }
 
 export const curriculum: Grade[] = [
+  // --- PREESCOLAR ---
   {
     name: 'Preescolar',
     slug: 'preschool',
-    description: "Conceptos fundamentales para los más pequeños.",
+    description: "Desarrollo integral para los más pequeños a través de dimensiones.",
     subjects: [
-      {
-        name: 'Colores y Formas',
-        slug: 'colors-shapes',
-        icon: Palette,
-        description: 'Aprende sobre los colores básicos y las formas geométricas.',
-        imageHint: "bloques coloridos",
-        topics: [
-          { name: 'Colores Primarios', slug: 'primary-colors', description: 'Rojo, amarillo y azul.', progress: 100 },
-          { name: 'Formas Básicas', slug: 'basic-shapes', description: 'Círculos, cuadrados y triángulos.', progress: 50 },
-        ],
-      },
-      {
-        name: 'Contar',
-        slug: 'counting',
-        icon: Calculator,
-        description: 'Introducción a los números y a contar del 1 al 10.',
-        imageHint: "juguete para contar",
-        topics: [
-          { name: 'Números 1-5', slug: 'numbers-1-5', description: 'Reconocer y contar hasta 5.', progress: 80 },
-          { name: 'Números 6-10', slug: 'numbers-6-10', description: 'Contar del 6 al 10.', progress: 20 },
-        ],
-      },
+      { name: 'Dimensión Comunicativa', slug: 'comunicativa', icon: Languages, description: 'Desarrollo del lenguaje y la expresión.', imageHint: "niños hablando", topics: [] },
+      { name: 'Dimensión Corporal', slug: 'corporal', icon: PersonStanding, description: 'Desarrollo motor y expresión corporal.', imageHint: "niños jugando", topics: [] },
+      { name: 'Dimensión Cognitiva', slug: 'cognitiva', icon: BrainCircuit, description: 'Desarrollo del pensamiento lógico.', imageHint: "niño rompecabezas", topics: [] },
+      { name: 'Dimensión Socioafectiva', slug: 'socioafectiva', icon: HeartHand, description: 'Desarrollo de la autonomía y relaciones.', imageHint: "niños compartiendo", topics: [] },
+      { name: 'Dimensión Estética', slug: 'estetica', icon: Palette, description: 'Desarrollo de la creatividad y el arte.', imageHint: "niño pintando", topics: [] },
     ],
   },
+  // --- BÁSICA PRIMARIA ---
   {
-    name: 'Tercer Grado',
-    slug: 'third-grade',
-    description: "Ampliando conocimientos en materias básicas.",
+    name: 'Básica Primaria',
+    slug: 'primary',
+    description: "Consolidación de áreas y asignaturas fundamentales (Grados 1° a 5°).",
     subjects: [
-      {
-        name: 'Matemáticas',
-        slug: 'mathematics',
-        icon: Calculator,
-        description: 'Multiplicación, división y fracciones.',
-        imageHint: "ábaco aula",
-        topics: [
-          { name: 'Tablas de Multiplicar', slug: 'multiplication-tables', description: 'Dominar las tablas del 1 al 10.', progress: 75 },
-          { name: 'Introducción a las Fracciones', slug: 'intro-fractions', description: 'Entender las partes de un todo.', progress: 40 },
-          { name: 'Conceptos Básicos de División', slug: 'division-basics', description: 'Problemas de división simples.', progress: 10 },
-        ],
-      },
-      {
-        name: 'Ciencias Naturales',
-        slug: 'natural-sciences',
-        icon: FlaskConical,
-        description: 'Explorando el mundo natural, desde plantas hasta planetas.',
-        imageHint: "niño microscopio",
-        topics: [
-          { name: 'El Ciclo del Agua', slug: 'water-cycle', description: 'Evaporación, condensación, precipitación.', progress: 90 },
-          { name: 'El Sistema Solar', slug: 'solar-system', description: 'Aprendiendo sobre los planetas.', progress: 60 },
-          { name: 'Vida Vegetal', slug: 'plant-life', description: 'Partes de una planta y fotosíntesis.', progress: 30 },
-        ],
-      },
-      {
-        name: 'Lenguaje',
-        slug: 'language',
-        icon: Languages,
-        description: 'Comprensión lectora y habilidades gramaticales.',
-        imageHint: "leyendo libro",
-        topics: [
-          { name: 'Partes de la Oración', slug: 'parts-of-speech', description: 'Sustantivos, verbos y adjetivos.', progress: 100 },
-          { name: 'Construcción de Oraciones', slug: 'building-sentences', description: 'Concordancia sujeto-verbo.', progress: 85 },
-        ],
-      },
+      { name: 'Lengua Castellana', slug: 'spanish', icon: BookOpen, description: 'Lectura, escritura y gramática.', imageHint: 'libro abierto', topics: [] },
+      { name: 'Inglés', slug: 'english-primary', icon: Globe, description: 'Aprendizaje de un idioma extranjero.', imageHint: 'banderas mundo', topics: [] },
+      { name: 'Matemáticas', slug: 'math-primary', icon: Calculator, description: 'Aritmética y geometría.', imageHint: 'ábaco números', topics: [] },
+      { name: 'Ciencias Naturales', slug: 'natural-sciences', icon: FlaskConical, description: 'Estudio del entorno y seres vivos.', imageHint: 'planta creciendo', topics: [] },
+      { name: 'Ciencias Sociales', slug: 'social-sciences', icon: Landmark, description: 'Historia, geografía y democracia.', imageHint: 'mapa antiguo', topics: [] },
+      { name: 'Educación Artística', slug: 'arts-primary', icon: Music, description: 'Música, artes plásticas y danza.', imageHint: 'pinceles colores', topics: [] },
+      { name: 'Ética y Valores', slug: 'ethics-primary', icon: Handshake, description: 'Formación en valores humanos.', imageHint: 'manos unidas', topics: [] },
+      { name: 'Educación Religiosa', slug: 'religion-primary', icon: Church, description: 'Aprendizaje sobre diversas creencias.', imageHint: 'vitral iglesia', topics: [] },
+      { name: 'Educación Física', slug: 'phys-ed-primary', icon: PersonStanding, description: 'Recreación y deportes.', imageHint: 'niños corriendo', topics: [] },
+      { name: 'Tecnología e Informática', slug: 'tech-primary', icon: Cpu, description: 'Nociones básicas de tecnología.', imageHint: 'niño computador', topics: [] },
     ],
   },
+  // --- BÁSICA SECUNDARIA ---
   {
-    name: 'Octavo Grado',
-    slug: 'eighth-grade',
-    description: "Temas avanzados en preparación para la secundaria.",
+    name: 'Básica Secundaria',
+    slug: 'secondary',
+    description: "Profundización en áreas del conocimiento (Grados 6° a 9°).",
     subjects: [
-      {
-        name: 'Álgebra',
-        slug: 'algebra',
-        icon: FileCode,
-        description: 'Introducción a expresiones y ecuaciones algebraicas.',
-        imageHint: "pizarra ecuaciones",
-        topics: [
-          { name: 'Ecuaciones Lineales', slug: 'linear-equations', description: 'Resolviendo para x.', progress: 65 },
-          { name: 'Polinomios', slug: 'polynomials', description: 'Conceptos básicos de expresiones polinómicas.', progress: 15 },
-        ],
-      },
-      {
-        name: 'Física',
-        slug: 'physics',
-        icon: Atom,
-        description: 'Principios fundamentales del movimiento, fuerza y energía.',
-        imageHint: "péndulo de newton",
-        topics: [
-          { name: 'Leyes de Newton', slug: 'newtons-laws', description: 'Inercia, F=ma y acción-reacción.', progress: 45 },
-          { name: 'Formas de Energía', slug: 'forms-of-energy', description: 'Energía cinética, potencial y térmica.', progress: 25 },
-        ],
-      },
-      {
-        name: 'Historia Universal',
-        slug: 'world-history',
-        icon: Landmark,
-        description: 'Explorando las principales civilizaciones y eventos mundiales.',
-        imageHint: "ruinas antiguas",
-        topics: [
-            { name: 'Antigua Roma', slug: 'ancient-rome', description: 'La República y el Imperio.', progress: 95 },
-            { name: 'El Renacimiento', slug: 'the-renaissance', description: 'Un renacer del arte y la ciencia.', progress: 50 },
-        ]
-      }
+      { name: 'Lengua Castellana', slug: 'spanish-secondary', icon: BookOpen, description: 'Análisis literario y gramática avanzada.', imageHint: 'pila libros', topics: [] },
+      { name: 'Inglés', slug: 'english-secondary', icon: Globe, description: 'Competencias comunicativas en inglés.', imageHint: 'estudiante extranjero', topics: [] },
+      { name: 'Matemáticas', slug: 'math-secondary', icon: Sigma, description: 'Álgebra, geometría y estadística.', imageHint: 'pizarra formulas', topics: [] },
+      { name: 'Biología', slug: 'biology', icon: Atom, description: 'El estudio de la vida y los organismos.', imageHint: 'microscopio celula', topics: [] },
+      { name: 'Química', slug: 'chemistry', icon: TestTube, description: 'La ciencia de la materia y sus cambios.', imageHint: 'tubos ensayo', topics: [] },
+      { name: 'Física', slug: 'physics', icon: Aperture, description: 'Principios de movimiento, fuerza y energía.', imageHint: 'péndulo newton', topics: [] },
+      { name: 'Ciencias Sociales', slug: 'social-studies-secondary', icon: Landmark, description: 'Historia y geografía de Colombia y el mundo.', imageHint: 'mapa mundial', topics: [] },
+      { name: 'Educación Artística', slug: 'arts-secondary', icon: Drama, description: 'Expresión en artes, música y danzas.', imageHint: 'mascaras teatro', topics: [] },
+      { name: 'Ética y Valores', slug: 'ethics-secondary', icon: Handshake, description: 'Reflexión sobre el comportamiento humano.', imageHint: 'balanza justicia', topics: [] },
+      { name: 'Tecnología e Informática', slug: 'tech-secondary', icon: Cpu, description: 'Desarrollo de habilidades digitales.', imageHint: 'código programación', topics: [] },
+      { name: 'Filosofía', slug: 'philosophy-secondary', icon: BrainCircuit, description: 'Introducción al pensamiento crítico.', imageHint: 'busto filósofo', topics: [] },
+    ],
+  },
+  // --- EDUCACIÓN MEDIA ---
+  {
+    name: 'Educación Media',
+    slug: 'high-school',
+    description: "Especialización y preparación para el futuro (Grados 10° y 11°).",
+    subjects: [
+      { name: 'Lectura Crítica', slug: 'critical-reading', icon: Book, description: 'Análisis profundo de textos complejos.', imageHint: 'lupa libro', topics: [] },
+      { name: 'Matemáticas Avanzadas', slug: 'advanced-math', icon: Sigma, description: 'Trigonometría, cálculo y geometría analítica.', imageHint: 'grafico complejo', topics: [] },
+      { name: 'Física', slug: 'physics-high', icon: Aperture, description: 'Leyes y fenómenos del universo físico.', imageHint: 'diagrama átomo', topics: [] },
+      { name: 'Química', slug: 'chemistry-high', icon: TestTube, description: 'Estudio de las reacciones y la materia.', imageHint: 'molécula 3d', topics: [] },
+      { name: 'Biología', slug: 'biology-high', icon: Atom, description: 'Genética, evolución y ecosistemas.', imageHint: 'cadena adn', topics: [] },
+      { name: 'Ciencias Políticas y Económicas', slug: 'politics-economics', icon: DollarSign, description: 'Sistemas políticos y económicos.', imageHint: 'edificio gobierno', topics: [] },
+      { name: 'Filosofía', slug: 'philosophy-high', icon: BrainCircuit, description: 'Grandes pensadores y corrientes filosóficas.', imageHint: 'estatua pensador', topics: [] },
+      { name: 'Tecnología', slug: 'tech-high', icon: Bot, description: 'Aplicaciones tecnológicas avanzadas.', imageHint: 'brazo robótico', topics: [] },
     ],
   },
 ];
 
 export const findGrade = (slug: string) => curriculum.find(g => g.slug === slug);
-export const findSubject = (gradeSlug: string, subjectSlug: string) => 
+export const findSubject = (gradeSlug: string, subjectSlug: string) =>
   findGrade(gradeSlug)?.subjects.find(s => s.slug === subjectSlug);
