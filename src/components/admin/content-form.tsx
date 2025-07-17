@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { curriculum, type Subject } from '@/lib/curriculum';
@@ -12,14 +12,14 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Upload } from 'lucide-react';
+import { RichTextEditor } from '@/components/rich-text-editor';
 
 const FormSchema = z.object({
   gradeSlug: z.string().min(1, 'Debes seleccionar un grado.'),
   subjectSlug: z.string().min(1, 'Debes seleccionar una materia.'),
   topicName: z.string().min(3, 'El nombre del tema debe tener al menos 3 caracteres.'),
-  topicDescription: z.string().min(10, 'La descripción debe tener al menos 10 caracteres.'),
+  topicContent: z.string().min(20, 'El contenido debe tener al menos 20 caracteres.'),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -35,7 +35,7 @@ export function ContentForm() {
       gradeSlug: '',
       subjectSlug: '',
       topicName: '',
-      topicDescription: '',
+      topicContent: '',
     },
   });
 
@@ -50,8 +50,6 @@ export function ContentForm() {
     setIsSubmitting(true);
     console.log('Form data submitted:', data);
     
-    // Aquí iría la lógica para subir el contenido a Firebase/Dexie
-    // Por ahora, solo mostramos una notificación
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     toast({
@@ -135,12 +133,16 @@ export function ContentForm() {
         
         <FormField
             control={form.control}
-            name="topicDescription"
+            name="topicContent"
             render={({ field }) => (
                 <FormItem>
-                <FormLabel>Descripción del Tema</FormLabel>
+                <FormLabel>Contenido del Tema</FormLabel>
                 <FormControl>
-                    <Textarea placeholder="Una breve descripción sobre qué trata el tema." {...field} />
+                    <RichTextEditor
+                      content={field.value}
+                      onChange={field.onChange}
+                      placeholder="Escribe el contenido aquí. Puedes pegar desde Word..."
+                    />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
