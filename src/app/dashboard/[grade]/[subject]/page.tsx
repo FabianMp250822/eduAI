@@ -18,8 +18,8 @@ type SubjectPageProps = {
   };
 };
 
-export default function SubjectPage({ params }: SubjectPageProps) {
-  const subject = findSubject(params.grade, params.subject);
+export default function SubjectPage({ params: { grade, subject: subjectSlug } }: SubjectPageProps) {
+  const subject = findSubject(grade, subjectSlug);
   const { isTopicSynced, isSyncing } = useSyncStatus();
 
   if (!subject) {
