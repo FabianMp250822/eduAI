@@ -5,7 +5,8 @@ import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
-import { KeyRound, Users, CheckCircle, XCircle, Loader } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Loader } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface LicenseData {
   status: string;
@@ -45,7 +46,7 @@ export function LicenseStatus() {
 
   if (loading) {
     return (
-        <Badge variant="outline" className="gap-2 py-1.5 px-3">
+        <Badge variant="outline" className="gap-2 w-full justify-center">
             <Loader className="h-3.5 w-3.5 animate-spin" />
             <span className="text-xs font-medium">Cargando...</span>
         </Badge>
@@ -54,7 +55,7 @@ export function LicenseStatus() {
 
   if (error || !licenseData) {
      return (
-        <Badge variant="destructive" className="gap-2 py-1.5 px-3">
+        <Badge variant="destructive" className="gap-2 w-full justify-center">
             <XCircle className="h-3.5 w-3.5" />
             <span className="text-xs font-medium">{error || 'Inválida'}</span>
         </Badge>
@@ -65,18 +66,29 @@ export function LicenseStatus() {
   const remainingInstalls = licenseData.maxInstalls - licenseData.currentInstalls;
 
   return (
-    <div className="hidden items-center gap-2 md:flex">
-      <Badge variant={isLicenseActive ? 'secondary' : 'destructive'} className="gap-2 py-1.5 px-3">
-        {isLicenseActive ? <CheckCircle className="h-3.5 w-3.5 text-green-500" /> : <XCircle className="h-3.5 w-3.5" />}
-        <span className="text-xs font-medium">
-          Licencia: {isLicenseActive ? 'Activa' : 'Inactiva'}
-        </span>
+    <div className="flex items-center gap-2">
+      <Badge variant={isLicenseActive ? 'secondary' : 'destructive'} className={cn(
+        "gap-2",
+        !isLicenseActive && "text-destructive-foreground"
+      )}>
+        {isLicenseActive ? <CheckCircle className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4" />}
+        <div className="flex flex-col text-left">
+            <span className="text-xs text-muted-foreground">Licencia:</span>
+            <span className="text-xs font-medium -mt-1">
+            {isLicenseActive ? 'Activa' : 'Inactiva'}
+            </span>
+        </div>
       </Badge>
-      <Badge variant="outline" className="gap-2 py-1.5 px-3">
-        <Users className="h-3.5 w-3.5" />
-        <span className="text-xs font-medium">
-          {remainingInstalls} de {licenseData.maxInstalls} disp.
-        </span>
+      <Badge variant="outline" className="gap-2">
+        <Users className="h-4 w-4" />
+         <div className="flex flex-col text-left">
+            <span className="text-xs text-muted-foreground">
+             {licenseData.currentInstalls} de {licenseData.maxInstalls}
+            </span>
+            <span className="text-xs font-medium -mt-1">
+            disp.
+            </span>
+        </div>
       </Badge>
     </div>
   );
