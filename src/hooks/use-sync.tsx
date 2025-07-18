@@ -11,11 +11,13 @@ import type { Topic } from '@/lib/curriculum';
 interface SyncContextType {
   isSyncing: boolean;
   syncProgress: number;
+  manualSync: () => Promise<void>;
 }
 
 const SyncContext = createContext<SyncContextType>({
     isSyncing: true,
     syncProgress: 0,
+    manualSync: async () => {},
 });
 
 export function useSyncStatus() {
@@ -37,7 +39,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     }
     
     setIsSyncing(true);
-    console.log('Starting full content synchronization...');
+    console.log('Starting content synchronization...');
     
     try {
       const subjectsCollectionRef = collection(firebaseDb, 'subjects');
@@ -106,7 +108,8 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(() => ({
     isSyncing,
     syncProgress,
-  }), [isSyncing, syncProgress]);
+    manualSync: syncContent,
+  }), [isSyncing, syncProgress, syncContent]);
 
   return <SyncContext.Provider value={value}>{children}</SyncContext.Provider>;
 }

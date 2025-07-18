@@ -18,14 +18,40 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { GraduationCap, Sparkles, ChevronDown, Shield } from 'lucide-react';
+import { GraduationCap, Sparkles, ChevronDown, Shield, RefreshCw, Loader } from 'lucide-react';
 import { curriculum } from '@/lib/curriculum';
 import { Button } from '@/components/ui/button';
 import { MobileNav } from '@/components/mobile-nav';
-import { SyncProvider } from '@/hooks/use-sync';
+import { SyncProvider, useSyncStatus } from '@/hooks/use-sync';
 import { LicenseStatus } from '@/components/license-status';
 import { Separator } from '@/components/ui/separator';
 import { LicenseValidator } from '@/components/license-validator';
+
+function ManualSyncButton() {
+  const { isSyncing, manualSync } = useSyncStatus();
+
+  return (
+    <Button 
+      variant="outline" 
+      size="sm" 
+      className="w-full justify-center group-data-[collapsible=icon]:hidden" 
+      onClick={manualSync}
+      disabled={isSyncing}
+    >
+      {isSyncing ? (
+        <>
+          <Loader className="mr-2 h-4 w-4 animate-spin" />
+          <span>Sincronizando...</span>
+        </>
+      ) : (
+        <>
+          <RefreshCw className="mr-2 h-4 w-4" />
+          <span>Sincronizar Contenido</span>
+        </>
+      )}
+    </Button>
+  );
+}
 
 export default function DashboardLayout({
   children,
@@ -100,11 +126,12 @@ export default function DashboardLayout({
               </SidebarMenu>
             </SidebarContent>
              <SidebarFooter>
-              <Separator className="my-2" />
                <div className="flex flex-col gap-2 p-2">
+                  <ManualSyncButton />
                   <div className="flex items-center justify-center group-data-[collapsible=icon]:hidden">
                       <LicenseStatus />
                   </div>
+                  <Separator className="my-1 group-data-[collapsible=icon]:hidden" />
                   <SidebarMenu className="group-data-[collapsible=icon]:hidden">
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild variant="ghost" size="sm" className="justify-center text-xs">
