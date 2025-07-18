@@ -54,6 +54,7 @@ export interface Subject {
 
 export interface Grade {
   name:string;
+  shortName: string;
   slug: string;
   description: string;
   subjects: Subject[];
@@ -63,6 +64,7 @@ export const curriculum: Grade[] = [
   // --- PREESCOLAR ---
   {
     name: 'Educación Preescolar',
+    shortName: 'Preescolar',
     slug: 'preschool',
     description: "Desarrollo integral para los más pequeños a través de dimensiones.",
     subjects: [
@@ -77,6 +79,7 @@ export const curriculum: Grade[] = [
   // --- BÁSICA PRIMARIA ---
   {
     name: 'Básica Primaria (1°-5°)',
+    shortName: '1° a 5°',
     slug: 'primary',
     description: "Consolidación de áreas y asignaturas fundamentales.",
     subjects: [
@@ -97,6 +100,7 @@ export const curriculum: Grade[] = [
   // --- BÁSICA SECUNDARIA ---
   {
     name: 'Básica Secundaria (6°-9°)',
+    shortName: '6° a 9°',
     slug: 'secondary',
     description: "Profundización en áreas del conocimiento.",
     subjects: [
@@ -118,6 +122,7 @@ export const curriculum: Grade[] = [
   // --- EDUCACIÓN MEDIA ---
   {
     name: 'Educación Media (10°-11°)',
+    shortName: '10° y 11°',
     slug: 'high-school',
     description: "Especialización y preparación para el futuro.",
     subjects: [

@@ -23,7 +23,7 @@ export default function GradePage({ params }: GradePageProps) {
 
   return (
     <>
-      <Header title={grade.name} />
+      <Header title={grade.shortName} />
       <main className="p-4 sm:p-6">
         <div className="mb-6 md:mb-8">
           <h2 className="font-headline text-2xl font-bold tracking-tight md:text-3xl">Materias en {grade.name}</h2>
