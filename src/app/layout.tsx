@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect } from 'react';
+import { syncFirestoreToIndexedDB } from "@/lib/local-sync";
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 // Metadata and viewport cannot be exported from a client component.
 // This information can be configured in a parent layout or the root layout if it's a server component.
+
 
 function ServiceWorkerRegistrar() {
   useEffect(() => {
@@ -21,8 +23,18 @@ function ServiceWorkerRegistrar() {
         );
       });
     }
+    // Sincronización automática de colecciones principales al cargar la app
+    // Puedes agregar más colecciones según tu modelo de datos
+    const colecciones = [
+      "usuarios", // ejemplo
+      "cursos",   // ejemplo
+      "temas",    // ejemplo
+      // agrega aquí tus colecciones reales
+    ];
+    colecciones.forEach((col) => {
+      syncFirestoreToIndexedDB(col).catch(() => {});
+    });
   }, []);
-
   return null;
 }
 
