@@ -3,8 +3,8 @@
 
 import { useParams, notFound, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { db as firebaseDb, getDoc } from '@/lib/firebase';
-import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { db as firebaseDb } from '@/lib/firebase';
+import { doc, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
 import { findSubject, type Topic } from '@/lib/curriculum';
 import { Header } from '@/components/header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -67,7 +67,28 @@ export default function TopicPage() {
                 }
             }
         } else {
-            setError("El tema no está disponible sin conexión. Conéctate a internet para descargarlo.");
+             if (navigator.onLine) {
+                try {
+                    const docId = `${gradeSlug}_${subjectSlug}`;
+                    const subjectRef = doc(firebaseDb, 'subjects', docId);
+                    const docSnap = await getDoc(subjectRef);
+                    if (docSnap.exists()) {
+                        const onlineTopicData = docSnap.data().topics?.find((t: Topic) => t.slug === topicSlug);
+                         if (onlineTopicData && onlineTopicData.content) {
+                            setTopic(onlineTopicData as EnrichedTopic);
+                        } else {
+                            setError("No se pudo encontrar el contenido de este tema.");
+                        }
+                    } else {
+                         setError("El tema que buscas no existe.");
+                    }
+                } catch (e) {
+                     setError("No se pudo cargar el tema desde la red.");
+                     console.error("Error fetching topic from Firebase:", e);
+                }
+            } else {
+                setError("El tema no está disponible sin conexión. Conéctate a internet para descargarlo.");
+            }
             setLoading(false);
         }
     };
