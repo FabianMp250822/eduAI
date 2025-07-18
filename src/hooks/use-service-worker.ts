@@ -1,9 +1,12 @@
 'use client';
 
-// Este hook registra el Service Worker al cargar la app
 import { useEffect } from 'react';
 
-function useServiceWorker() {
+// This component registers the Service Worker when the app loads.
+// It is marked as a client component because it uses the useEffect hook
+// and interacts with browser-specific APIs like `navigator`.
+
+export function ServiceWorkerRegistrar() {
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -14,9 +17,6 @@ function useServiceWorker() {
       });
     }
   }, []);
-}
 
-export function ServiceWorkerRegistrar() {
-    useServiceWorker();
-    return null;
+  return null; // This component doesn't render anything.
 }
