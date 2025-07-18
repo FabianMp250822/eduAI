@@ -1,5 +1,6 @@
 import type {Metadata} from 'next';
 import './globals.css';
+import { useServiceWorker } from "@/hooks/use-service-worker";
 import { Toaster } from "@/components/ui/toaster";
 
 
@@ -14,6 +15,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  useServiceWorker();
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
