@@ -3,8 +3,8 @@
 
 import { useParams, notFound, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { db } from '@/lib/firebase';
-import { doc, onSnapshot, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { db as firebaseDb } from '@/lib/firebase';
+import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { findSubject, type Topic } from '@/lib/curriculum';
 import { Header } from '@/components/header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -12,13 +12,19 @@ import { Button } from '@/components/ui/button';
 import { Loader, BookOpen, Check, Award } from 'lucide-react';
 import { addPointsForAction } from '@/lib/points';
 import { useToast } from '@/hooks/use-toast';
+import { db as localDb } from '@/lib/db';
+import type { DBTopic } from '@/lib/db';
+
+interface EnrichedTopic extends Topic {
+    content: string;
+}
 
 export default function TopicPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
   
-  const [topic, setTopic] = useState<Topic | null>(null);
+  const [topic, setTopic] = useState<EnrichedTopic | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -36,29 +42,65 @@ export default function TopicPage() {
       return;
     }
 
-    const docId = `${gradeSlug}_${subjectSlug}`;
-    const subjectRef = doc(db, 'subjects', docId);
+    const fetchTopic = async () => {
+        // Fetch from local DB first for offline capability
+        const localTopic: DBTopic | undefined = await localDb.topics.get(topicSlug);
 
-    const unsubscribe = onSnapshot(subjectRef, (doc) => {
-      if (doc.exists()) {
-        const subjectData = doc.data();
-        const foundTopic = subjectData.topics?.find((t: Topic) => t.slug === topicSlug);
-        if (foundTopic) {
-          setTopic(foundTopic);
+        if (localTopic) {
+            // Found in local DB, now get progress from Firebase if online
+            const docId = `${gradeSlug}_${subjectSlug}`;
+            const subjectRef = doc(firebaseDb, 'subjects', docId);
+            
+            let progress = 0; // Default progress
+            if (navigator.onLine) {
+                try {
+                    const docSnap = await firebaseDb.getDoc(subjectRef);
+                    if (docSnap.exists()) {
+                        const onlineTopic = docSnap.data().topics?.find((t: Topic) => t.slug === topicSlug);
+                        if (onlineTopic) {
+                            progress = onlineTopic.progress;
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Could not fetch progress from Firebase, using default.", e);
+                }
+            }
+
+            setTopic({ ...localTopic, progress });
+            setLoading(false);
+
+        } else if (navigator.onLine) {
+            // Not found locally, try fetching from Firebase as a fallback
+            setError("El tema no está disponible sin conexión. Intentando cargar...");
+            console.warn("Topic not found locally, trying Firebase.");
+            const docId = `${gradeSlug}_${subjectSlug}`;
+            const subjectRef = doc(firebaseDb, 'subjects', docId);
+            try {
+                const docSnap = await firebaseDb.getDoc(subjectRef);
+                if (docSnap.exists()) {
+                    const foundTopic = docSnap.data().topics?.find((t: Topic) => t.slug === topicSlug);
+                    if (foundTopic && foundTopic.content) {
+                        setTopic(foundTopic as EnrichedTopic);
+                        setError(null);
+                    } else {
+                        setError("El tema no fue encontrado en esta materia.");
+                    }
+                } else {
+                    setError("La materia no fue encontrada.");
+                }
+            } catch (err) {
+                 setError("No se pudo cargar el tema. Verifica tu conexión.");
+            } finally {
+                setLoading(false);
+            }
         } else {
-          setError("El tema no fue encontrado en esta materia.");
+             setError("El tema no está disponible sin conexión.");
+             setLoading(false);
         }
-      } else {
-        setError("La materia no fue encontrada.");
-      }
-      setLoading(false);
-    }, (err) => {
-      console.error("Error fetching topic:", err);
-      setError("No se pudo cargar el tema. Verifica tu conexión.");
-      setLoading(false);
-    });
+    };
 
-    return () => unsubscribe();
+    fetchTopic();
+
   }, [gradeSlug, subjectSlug, topicSlug]);
   
   const handleCompleteTopic = async () => {
@@ -66,23 +108,24 @@ export default function TopicPage() {
     
     setIsCompleting(true);
     const docId = `${gradeSlug}_${subjectSlug}`;
-    const subjectRef = doc(db, 'subjects', docId);
+    const subjectRef = doc(firebaseDb, 'subjects', docId);
 
     try {
-      // Find the specific topic object to remove it from the array
       const topicToUpdate = {
         name: topic.name,
         slug: topic.slug,
         description: topic.description,
-        progress: 0, // This is the old state we want to remove
+        progress: 0, 
+        content: topic.content,
       };
+      
+      const topicWithoutContent = { ...topicToUpdate };
+      delete topicWithoutContent.content;
 
-      // Create the new topic object with updated progress
-      const updatedTopic = { ...topicToUpdate, progress: 100 };
-
-      // Atomically remove the old topic and add the updated one
+      const updatedTopic = { ...topicWithoutContent, progress: 100 };
+      
       await updateDoc(subjectRef, {
-          topics: arrayRemove(topicToUpdate)
+          topics: arrayRemove(topicWithoutContent)
       });
       await updateDoc(subjectRef, {
           topics: arrayUnion(updatedTopic)
@@ -102,8 +145,7 @@ export default function TopicPage() {
         });
       }
       
-      // Update local state to reflect change immediately
-      setTopic(updatedTopic);
+      setTopic(prev => prev ? { ...prev, progress: 100 } : null);
 
     } catch (e) {
       console.error("Error completing topic:", e);
@@ -126,7 +168,26 @@ export default function TopicPage() {
   }
 
   if (error || !topic || !subjectInfo) {
-    notFound();
+    return (
+        <>
+            <Header title="Error" />
+            <main className="p-4 sm:p-6 lg:p-8">
+                <Card className="mx-auto max-w-4xl text-center">
+                    <CardHeader>
+                        <CardTitle className="text-destructive">No se pudo cargar el contenido</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground">{error || "El tema que buscas no está disponible."}</p>
+                    </CardContent>
+                     <CardFooter>
+                        <Button onClick={() => router.back()} className="mx-auto">
+                            Volver
+                        </Button>
+                    </CardFooter>
+                </Card>
+            </main>
+        </>
+    );
   }
 
   const isCompleted = topic.progress >= 100;

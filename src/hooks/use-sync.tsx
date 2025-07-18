@@ -1,18 +1,17 @@
 
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db as localDb, type DBTopic, type DBSyncTrack } from '@/lib/db';
 import { db as firebaseDb } from '@/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, onSnapshot } from 'firebase/firestore';
 import type { Topic } from '@/lib/curriculum';
 
 interface SyncContextType {
-  isTopicSynced: (topicSlug: string) => boolean;
-  isSyncing: (topicSlug: string) => boolean;
-  totalSynced: number;
-  totalTopics: number;
+  isSyncing: boolean;
+  totalSyncedCount: number;
+  allTopicsCount: number;
   syncProgress: number;
 }
 
@@ -27,98 +26,85 @@ export function useSyncStatus() {
 }
 
 export function SyncProvider({ children }: { children: React.ReactNode }) {
-  const [syncingTopics, setSyncingTopics] = useState<Set<string>>(new Set());
-  const [allTopics, setAllTopics] = useState<Topic[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [allTopicsCount, setAllTopicsCount] = useState(0);
 
   // Tracks topics that have been synced to the local DB
   const syncTracker = useLiveQuery(() => localDb.syncTracker.toArray(), []);
-  const syncedTopicsSet = React.useMemo(() => {
+  const syncedTopicsSet = useMemo(() => {
     return new Set(syncTracker?.map(t => t.slug) || []);
   }, [syncTracker]);
 
-  const totalTopics = allTopics.length;
+  const totalSyncedCount = syncedTopicsSet.size;
 
-  const fetchAllTopicsFromFirebase = useCallback(async () => {
+  const syncContent = useCallback(async () => {
+    if (!navigator.onLine) {
+      console.log('Offline. Skipping synchronization.');
+      return;
+    }
+    
+    setIsSyncing(true);
+    console.log('Starting content synchronization...');
+    
     try {
-      console.log('Fetching all subjects and topics from Firebase...');
       const subjectsCollectionRef = collection(firebaseDb, 'subjects');
       const querySnapshot = await getDocs(subjectsCollectionRef);
-      const topics: Topic[] = [];
+      
+      const allFirebaseTopics: Topic[] = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         if (data.topics && Array.isArray(data.topics)) {
-          topics.push(...data.topics);
+          allFirebaseTopics.push(...data.topics);
         }
       });
-      console.log(`Found ${topics.length} total topics in Firebase.`);
-      setAllTopics(topics);
-      return topics;
-    } catch (error) {
-      console.error("Failed to fetch topics from Firebase:", error);
-      return [];
-    }
-  }, []);
+      
+      setAllTopicsCount(allFirebaseTopics.length);
 
-  const syncContent = useCallback(async (topicsToSync: Topic[]) => {
-    if (!navigator.onLine) {
-        console.log('Offline. Skipping synchronization.');
+      const topicsToSync = allFirebaseTopics.filter(topic => topic.content && !syncedTopicsSet.has(topic.slug));
+
+      if (topicsToSync.length === 0) {
+        console.log("All content is up to date.");
+        setIsSyncing(false);
         return;
-    }
-    console.log('Starting content synchronization for new topics...');
-    
-    for (const topic of topicsToSync) {
-      // Check if topic is already synced to avoid redundant work
-      if (!syncedTopicsSet.has(topic.slug)) {
-        try {
-          setSyncingTopics(prev => new Set(prev).add(topic.slug));
-          
-          const topicContent: DBTopic = {
-            slug: topic.slug,
-            name: topic.name,
-            description: topic.description,
-            content: topic.content || `<p>Contenido para ${topic.name} no encontrado.</p>`,
-          };
-
-          await localDb.topics.put(topicContent, topic.slug);
-          await localDb.syncTracker.put({ slug: topic.slug, syncedAt: new Date() }, topic.slug);
-
-          console.log(`Synced: ${topic.name}`);
-        } catch (error) {
-          console.error(`Failed to sync topic ${topic.slug}:`, error);
-        } finally {
-          setSyncingTopics(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(topic.slug);
-            return newSet;
-          });
-        }
       }
+      
+      console.log(`Found ${topicsToSync.length} new topics to sync.`);
+
+      for (const topic of topicsToSync) {
+        const topicContent: DBTopic = {
+          slug: topic.slug,
+          name: topic.name,
+          description: topic.description,
+          content: topic.content!,
+        };
+
+        await localDb.topics.put(topicContent, topic.slug);
+        await localDb.syncTracker.put({ slug: topic.slug, syncedAt: new Date() }, topic.slug);
+        console.log(`Synced: ${topic.name}`);
+      }
+      
+    } catch (error) {
+      console.error("Failed during synchronization:", error);
+    } finally {
+      console.log('Content synchronization finished.');
+      setIsSyncing(false);
     }
-    console.log('Content synchronization finished.');
   }, [syncedTopicsSet]);
 
   useEffect(() => {
-    const performSync = async () => {
-        const firebaseTopics = await fetchAllTopicsFromFirebase();
-        if(firebaseTopics.length > 0) {
-            await syncContent(firebaseTopics);
-        }
-    };
-    
-    performSync();
-  }, [fetchAllTopicsFromFirebase, syncContent]);
+    // Initial sync on load
+    syncContent();
 
-  const isTopicSynced = (topicSlug: string) => syncedTopicsSet.has(topicSlug);
-  const isSyncing = (topicSlug: string) => syncingTopics.has(topicSlug);
-  
-  const totalSynced = syncTracker?.length || 0;
-  const syncProgress = totalTopics > 0 ? (totalSynced / totalTopics) * 100 : 0;
+    // Future real-time updates could be implemented here by listening to changes
+    // in the 'subjects' collection, but for now, a sync on load is sufficient.
+  }, [syncContent]);
+
+  const syncProgress = allTopicsCount > 0 ? (totalSyncedCount / allTopicsCount) * 100 : 100;
 
   const value = {
-    isTopicSynced,
     isSyncing,
-    totalSynced,
-    totalTopics,
+    totalSyncedCount,
+    allTopicsCount,
     syncProgress,
   };
 

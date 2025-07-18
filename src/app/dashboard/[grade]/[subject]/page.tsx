@@ -31,32 +31,47 @@ export default function SubjectPage() {
 
   const subject = findSubject(gradeSlug, subjectSlug);
 
+  const localTopics = useLiveQuery(
+    () => localDb.topics.toArray(), // Fetch all topics, will filter later
+    [],
+    []
+  );
+
   useEffect(() => {
     if (!gradeSlug || !subjectSlug) return;
     
     setLoadingTopics(true);
-    const docId = `${gradeSlug}_${subjectSlug}`;
-    const subjectRef = doc(firebaseDb, 'subjects', docId);
 
-    const unsubscribe = onSnapshot(subjectRef, (doc) => {
-      if (doc.exists()) {
-        const subjectData = doc.data();
-        const fetchedTopics = (subjectData.topics || []).map((t: Topic) => ({
-          ...t,
-          id: t.slug,
-        }));
-        setTopics(fetchedTopics);
-      } else {
-        setTopics([]);
-      }
-      setLoadingTopics(false);
-    }, (error) => {
-      console.error("Error fetching topics:", error);
-      setLoadingTopics(false);
-    });
+    // Prioritize local data for offline access
+    if (localTopics && localTopics.length > 0) {
+        const docId = `${gradeSlug}_${subjectSlug}`;
+        const subjectRef = doc(firebaseDb, 'subjects', docId);
 
-    return () => unsubscribe();
-  }, [gradeSlug, subjectSlug]);
+        // Listen for online updates
+        const unsubscribe = onSnapshot(subjectRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const subjectData = docSnap.data();
+                const fetchedTopics = (subjectData.topics || []).map((t: Topic) => ({
+                    ...t,
+                    id: t.slug,
+                }));
+                setTopics(fetchedTopics);
+            } else {
+                setTopics([]);
+            }
+            setLoadingTopics(false);
+        }, (error) => {
+            console.warn("Offline or error fetching from Firebase, using local data.", error);
+            // In case of error (e.g., offline), we rely on the data already loaded or being loaded from Dexie.
+             setLoadingTopics(false);
+        });
+
+        return () => unsubscribe();
+    } else if (navigator.onLine === false) {
+        // If offline and no local topics, show empty state
+        setLoadingTopics(false);
+    }
+  }, [gradeSlug, subjectSlug, localTopics]); // Depend on localTopics to re-run when it loads
   
   const aiContent = useLiveQuery(
     () => localDb.aiContent
@@ -79,6 +94,7 @@ export default function SubjectPage() {
   ];
   
   const filteredTopics = useMemo(() => {
+    if (!topics) return [];
     if (!searchTerm) return topics;
     return topics.filter(topic =>
       topic.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
