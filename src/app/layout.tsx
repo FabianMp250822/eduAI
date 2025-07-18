@@ -1,43 +1,11 @@
 'use client';
 
 import { useEffect } from 'react';
-import { syncFirestoreToIndexedDB } from "@/lib/local-sync";
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 // Metadata and viewport cannot be exported from a client component.
 // This information can be configured in a parent layout or the root layout if it's a server component.
-
-
-function ServiceWorkerRegistrar() {
-  useEffect(() => {
-    if ('serviceWorker' in navigator && process.env.NODE_ENV !== 'development') {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').then(
-          (registration) => {
-            console.log('Service Worker registration successful with scope: ', registration.scope);
-          },
-          (err) => {
-            console.log('Service Worker registration failed: ', err);
-          }
-        );
-      });
-    }
-    // Sincronización automática de colecciones principales al cargar la app
-    // Puedes agregar más colecciones según tu modelo de datos
-    const colecciones = [
-      "usuarios", // ejemplo
-      "cursos",   // ejemplo
-      "temas",    // ejemplo
-      // agrega aquí tus colecciones reales
-    ];
-    colecciones.forEach((col) => {
-      syncFirestoreToIndexedDB(col).catch(() => {});
-    });
-  }, []);
-  return null;
-}
-
 
 export default function RootLayout({
   children,
@@ -58,7 +26,6 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        <ServiceWorkerRegistrar />
         {children}
         <Toaster />
       </body>
