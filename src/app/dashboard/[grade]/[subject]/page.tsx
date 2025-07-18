@@ -100,14 +100,17 @@ export default function SubjectPage() {
 
     setIsGenerating(true);
     try {
-      await generateSingleTopic({
+      const newTopic = await generateSingleTopic({
         query: query,
         gradeName: subject.gradeName,
         subjectName: subject.name,
         gradeSlug,
         subjectSlug,
       });
-      // Removed toast to make it seamless
+
+      // Add the new topic to the local state immediately
+      setTopics(prevTopics => [...prevTopics, { ...newTopic, id: newTopic.slug }]);
+      
     } catch (error) {
       console.error("Error generating topic:", error);
       toast({
