@@ -14,7 +14,7 @@ const withPWA = withPWAInit.default({
       },
       handler: 'StaleWhileRevalidate',
       options: {
-        cacheName: 'dashboard-pages',
+        cacheName: 'dashboard-pages-cache',
         expiration: {
           maxEntries: 50,
           maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
@@ -24,31 +24,30 @@ const withPWA = withPWAInit.default({
         },
       },
     },
-    {
-       handler: 'NetworkFirst',
-       urlPattern: ({ url }) => {
-          const isSameOrigin = self.origin === url.origin;
-          if (!isSameOrigin) return false;
-          const isRSC = url.pathname.endsWith('.rsc');
-          return isRSC;
-       },
-       options: {
-         cacheName: 'rsc-cache',
-         networkTimeoutSeconds: 15,
-         expiration: {
-           maxEntries: 64,
-           maxAgeSeconds: 24 * 60 * 60, // 1 day
-         },
-         cacheableResponse: {
-           statuses: [0, 200],
-         },
-       },
-     },
+     {
+      handler: 'NetworkFirst',
+      urlPattern: ({ url }) => {
+        const isSameOrigin = self.origin === url.origin;
+        if (!isSameOrigin) return false;
+        return url.pathname.endsWith('.rsc');
+      },
+      options: {
+        cacheName: 'rsc-cache',
+        networkTimeoutSeconds: 10,
+        expiration: {
+          maxEntries: 64,
+          maxAgeSeconds: 24 * 60 * 60, // 1 day
+        },
+        cacheableResponse: {
+          statuses: [0, 200],
+        },
+      },
+    },
     {
       urlPattern: /^https?:\/\/.*\.(?:png|jpg|jpeg|svg|gif|ico|webp|avif)/i,
       handler: 'CacheFirst',
       options: {
-        cacheName: 'images',
+        cacheName: 'images-cache',
         expiration: {
           maxEntries: 60,
           maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
@@ -81,7 +80,7 @@ const withPWA = withPWAInit.default({
       urlPattern: ({ url }) => url.pathname === '/',
       handler: 'StaleWhileRevalidate',
       options: {
-        cacheName: 'start-page',
+        cacheName: 'start-page-cache',
         expiration: {
           maxEntries: 1,
           maxAgeSeconds: 24 * 60 * 60, // 1 Day
