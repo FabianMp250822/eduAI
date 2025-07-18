@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { LicenseForm } from '@/components/license-form';
@@ -9,17 +9,18 @@ import { Loader } from 'lucide-react';
 
 export default function Home() {
   const router = useRouter();
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     const licenseKey = localStorage.getItem('licenseKey');
     if (licenseKey) {
       router.push('/dashboard');
+    } else {
+      setChecking(false);
     }
   }, [router]);
 
-  // We can show a loading state or the form directly
-  // A loading state is better for UX
-  if (typeof window !== 'undefined' && localStorage.getItem('licenseKey')) {
+  if (checking) {
     return (
        <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 md:p-8">
         <div className="flex items-center gap-2 text-primary">
