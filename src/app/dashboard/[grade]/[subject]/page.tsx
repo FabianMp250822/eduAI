@@ -31,9 +31,10 @@ export default function SubjectPage() {
 
   const subject = findSubject(gradeSlug, subjectSlug);
 
-  const localTopics = useLiveQuery(
-    () => localDb.topics.toArray(), // Fetch all topics, will filter later
-    [],
+  // Read all topics for this subject directly from local DB for offline access
+  const localTopicsForSubject = useLiveQuery(
+    () => localDb.topics.where('subjectSlug').equals(subjectSlug).toArray(),
+    [subjectSlug],
     []
   );
 
@@ -41,37 +42,35 @@ export default function SubjectPage() {
     if (!gradeSlug || !subjectSlug) return;
     
     setLoadingTopics(true);
+    
+    const docId = `${gradeSlug}_${subjectSlug}`;
+    const subjectRef = doc(firebaseDb, 'subjects', docId);
 
-    // Prioritize local data for offline access
-    if (localTopics && localTopics.length > 0) {
-        const docId = `${gradeSlug}_${subjectSlug}`;
-        const subjectRef = doc(firebaseDb, 'subjects', docId);
-
-        // Listen for online updates
-        const unsubscribe = onSnapshot(subjectRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const subjectData = docSnap.data();
-                const fetchedTopics = (subjectData.topics || []).map((t: Topic) => ({
-                    ...t,
-                    id: t.slug,
-                }));
-                setTopics(fetchedTopics);
-            } else {
-                setTopics([]);
-            }
-            setLoadingTopics(false);
-        }, (error) => {
-            console.warn("Offline or error fetching from Firebase, using local data.", error);
-            // In case of error (e.g., offline), we rely on the data already loaded or being loaded from Dexie.
-             setLoadingTopics(false);
-        });
-
-        return () => unsubscribe();
-    } else if (navigator.onLine === false) {
-        // If offline and no local topics, show empty state
+    // Listen for online updates from Firebase
+    const unsubscribe = onSnapshot(subjectRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const subjectData = docSnap.data();
+            const fetchedTopics = (subjectData.topics || []).map((t: Topic) => ({
+                ...t,
+                id: t.slug,
+            }));
+            setTopics(fetchedTopics);
+        } else {
+            // If doc doesn't exist in Firebase, rely on local data
+            const formattedLocalTopics = (localTopicsForSubject || []).map(t => ({...t, id: t.slug, progress: 0}));
+            setTopics(formattedLocalTopics);
+        }
         setLoadingTopics(false);
-    }
-  }, [gradeSlug, subjectSlug, localTopics]); // Depend on localTopics to re-run when it loads
+    }, (error) => {
+        console.warn("Offline or error fetching from Firebase, using local data.", error);
+        // In case of error (e.g., offline), we rely on the data already loaded from Dexie.
+        const formattedLocalTopics = (localTopicsForSubject || []).map(t => ({...t, id: t.slug, progress: 0}));
+        setTopics(formattedLocalTopics);
+        setLoadingTopics(false);
+    });
+
+    return () => unsubscribe();
+  }, [gradeSlug, subjectSlug, localTopicsForSubject]); 
   
   const aiContent = useLiveQuery(
     () => localDb.aiContent

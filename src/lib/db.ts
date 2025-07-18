@@ -9,6 +9,8 @@ export interface DBTopic {
   name: string;
   description: string;
   content: string; // The actual educational content (HTML, Markdown, etc.)
+  gradeSlug: string;
+  subjectSlug: string;
 }
 
 // Tracks which topics have been successfully synced for offline use.
@@ -38,10 +40,10 @@ class AppDatabase extends Dexie {
 
   constructor() {
     super('EduSyncAI_DB');
-    this.version(3).stores({
-      topics: '&slug',
+    this.version(4).stores({
+      topics: '&slug, gradeSlug, subjectSlug', // Add indexes for querying
       syncTracker: '&slug, syncedAt',
-      aiContent: '&id, licenseKey, gradeSlug, subjectSlug', // Added licenseKey
+      aiContent: '&id, licenseKey, gradeSlug, subjectSlug',
     });
   }
 }

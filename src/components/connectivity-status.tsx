@@ -2,16 +2,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Wifi, WifiOff, RefreshCw, CheckCircle } from 'lucide-react';
+import { WifiOff, RefreshCw, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useSyncStatus } from '@/hooks/use-sync';
 
 export function ConnectivityStatus() {
   const [isOnline, setIsOnline] = useState(true);
-  const { isSyncing, syncProgress, allTopicsCount } = useSyncStatus();
+  const { isSyncing, syncProgress } = useSyncStatus();
 
   useEffect(() => {
+    // Set initial online status
     if (typeof window !== 'undefined' && typeof window.navigator !== 'undefined') {
       setIsOnline(window.navigator.onLine);
     }
@@ -52,7 +53,7 @@ export function ConnectivityStatus() {
     );
   }
 
-  // Online and finished syncing (or no topics to sync)
+  // Online and finished syncing
   return (
     <Badge variant="outline" className={cn(
         "text-green-600 border-green-200 bg-green-50",
