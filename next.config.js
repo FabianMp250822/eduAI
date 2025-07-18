@@ -12,17 +12,21 @@ const withPWA = withPWAInit.default({
       urlPattern: ({ url }) => {
         return url.pathname.startsWith('/dashboard');
       },
-      handler: 'StaleWhileRevalidate',
+      handler: 'NetworkFirst',
       options: {
         cacheName: 'dashboard-pages',
+        networkTimeoutSeconds: 10,
         expiration: {
           maxEntries: 50,
           maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
         },
+        cacheableResponse: {
+          statuses: [0, 200],
+        },
       },
     },
     {
-      urlPattern: /^https?:\/\/.*\.(?:png|jpg|jpeg|svg|gif|ico|webp)/i,
+      urlPattern: /^https?:\/\/.*\.(?:png|jpg|jpeg|svg|gif|ico|webp|avif)/i,
       handler: 'CacheFirst',
       options: {
         cacheName: 'images',
