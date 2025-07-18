@@ -9,10 +9,7 @@ import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Search, Video, FileText, ClipboardCheck, MessageCircleQuestion, BookOpen, Circle, CheckCircle, Loader, Sparkles } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db as localDb } from '@/lib/db';
-import { db as firebaseDb } from '@/lib/firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { getFromIndexedDB } from '@/lib/local-sync';
 import { Input } from '@/components/ui/input';
 import type { Topic } from '@/lib/curriculum';
 import { generateSingleTopic } from '@/ai/flows/generate-single-topic-flow';
@@ -32,65 +29,31 @@ export default function SubjectPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const generationDebounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-  const gradeSlug = Array.isArray(params.grade) ? params.grade[0] : params.grade;
-  const subjectSlug = Array.isArray(params.subject) ? params.subject[0] : params.subject;
+
+  const gradeSlug: string = Array.isArray(params.grade) ? params.grade[0] : (params.grade ?? '');
+  const subjectSlug: string = Array.isArray(params.subject) ? params.subject[0] : (params.subject ?? '');
 
   const subject = findSubject(gradeSlug, subjectSlug);
 
-  const localTopicsForSubject = useLiveQuery(
-    () => localDb.topics.where('subjectSlug').equals(subjectSlug).toArray(),
-    [subjectSlug],
-    []
-  );
 
+  // Cargar temas desde IndexedDB local
   useEffect(() => {
     if (!gradeSlug || !subjectSlug) return;
-
     setLoadingTopics(true);
-    
-    // Fallback to local data initially
-    if (localTopicsForSubject && localTopicsForSubject.length > 0) {
-        const formattedLocalTopics = (localTopicsForSubject || []).map(t => ({...t, id: t.slug, progress: 0}));
-        setTopics(formattedLocalTopics);
-    }
-
-    const docId = `${gradeSlug}_${subjectSlug}`;
-    const subjectRef = doc(firebaseDb, 'subjects', docId);
-
-    const unsubscribe = onSnapshot(subjectRef, (docSnap) => {
-        let finalTopics: TopicWithId[] = [];
-        if (docSnap.exists()) {
-            const subjectData = docSnap.data();
-            finalTopics = (subjectData.topics || []).map((t: Topic) => ({
-                ...t,
-                id: t.slug,
-            }));
-        } else {
-             // If firebase doc doesn't exist, use whatever is local
-             finalTopics = (localTopicsForSubject || []).map(t => ({...t, id: t.slug, progress: 0}));
-        }
-        
-        // De-duplicate topics to prevent React key errors
-        const uniqueTopics = Array.from(new Map(finalTopics.map(item => [item.slug, item])).values());
-        setTopics(uniqueTopics);
-
-        setLoadingTopics(false);
-    }, (error) => {
-        console.warn("Offline or error fetching from Firebase, using local data.", error);
-        const formattedLocalTopics = (localTopicsForSubject || []).map(t => ({...t, id: t.slug, progress: 0}));
-        setTopics(formattedLocalTopics);
-        setLoadingTopics(false);
+    getFromIndexedDB('topics').then((allTopics: any[] = []) => {
+      const filtered = allTopics.filter((t: any) => t.subjectSlug === subjectSlug);
+      setTopics(filtered.map((t: any) => ({ ...t, id: t.slug, progress: 0 })));
+      setLoadingTopics(false);
     });
-
-    return () => unsubscribe();
-  }, [gradeSlug, subjectSlug, localTopicsForSubject]); 
+  }, [gradeSlug, subjectSlug]);
   
-  const aiContent = useLiveQuery(
-    () => localDb.aiContent
-            .where({ gradeSlug: gradeSlug, subjectSlug: subjectSlug })
-            .toArray(),
-    [gradeSlug, subjectSlug]
-  );
+
+  const [aiContent, setAiContent] = useState<any[]>([]);
+  useEffect(() => {
+    getFromIndexedDB('ai_content').then((allContent: any[] = []) => {
+      setAiContent(allContent.filter((c: any) => c.gradeSlug === gradeSlug && c.subjectSlug === subjectSlug));
+    });
+  }, [gradeSlug, subjectSlug]);
 
   const filteredTopics = useMemo(() => {
     if (!topics) return [];
