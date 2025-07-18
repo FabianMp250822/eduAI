@@ -5,7 +5,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db as localDb, type DBTopic, type DBSyncTrack } from '@/lib/db';
 import { db as firebaseDb } from '@/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, QuerySnapshot, DocumentData } from 'firebase/firestore';
 import type { Topic } from '@/lib/curriculum';
 
 interface SyncContextType {
@@ -103,10 +103,10 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
   const syncProgress = allTopicsCount > 0 ? (syncedTopicsCount / allTopicsCount) * 100 : (isSyncing ? 0 : 100);
 
-  const value = {
+  const value = useMemo(() => ({
     isSyncing,
     syncProgress,
-  };
+  }), [isSyncing, syncProgress]);
 
   return <SyncContext.Provider value={value}>{children}</SyncContext.Provider>;
 }
