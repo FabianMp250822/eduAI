@@ -12,10 +12,9 @@ const withPWA = withPWAInit.default({
       urlPattern: ({ url }) => {
         return url.pathname.startsWith('/dashboard');
       },
-      handler: 'NetworkFirst',
+      handler: 'StaleWhileRevalidate',
       options: {
         cacheName: 'dashboard-pages',
-        networkTimeoutSeconds: 10,
         expiration: {
           maxEntries: 50,
           maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
@@ -25,6 +24,26 @@ const withPWA = withPWAInit.default({
         },
       },
     },
+    {
+       handler: 'NetworkFirst',
+       urlPattern: ({ url }) => {
+          const isSameOrigin = self.origin === url.origin;
+          if (!isSameOrigin) return false;
+          const isRSC = url.pathname.endsWith('.rsc');
+          return isRSC;
+       },
+       options: {
+         cacheName: 'rsc-cache',
+         networkTimeoutSeconds: 15,
+         expiration: {
+           maxEntries: 64,
+           maxAgeSeconds: 24 * 60 * 60, // 1 day
+         },
+         cacheableResponse: {
+           statuses: [0, 200],
+         },
+       },
+     },
     {
       urlPattern: /^https?:\/\/.*\.(?:png|jpg|jpeg|svg|gif|ico|webp|avif)/i,
       handler: 'CacheFirst',
