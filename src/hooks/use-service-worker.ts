@@ -1,7 +1,9 @@
+'use client';
+
 // Este hook registra el Service Worker al cargar la app
 import { useEffect } from 'react';
 
-export function useServiceWorker() {
+function useServiceWorker() {
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -12,4 +14,9 @@ export function useServiceWorker() {
       });
     }
   }, []);
+}
+
+export function ServiceWorkerRegistrar() {
+    useServiceWorker();
+    return null;
 }

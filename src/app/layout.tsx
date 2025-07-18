@@ -1,6 +1,6 @@
 import type {Metadata} from 'next';
 import './globals.css';
-import { useServiceWorker } from "@/hooks/use-service-worker";
+import { ServiceWorkerRegistrar } from "@/hooks/use-service-worker";
 import { Toaster } from "@/components/ui/toaster";
 
 
@@ -15,7 +15,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  useServiceWorker();
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
@@ -26,6 +25,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
+        <ServiceWorkerRegistrar />
         {children}
         <Toaster />
       </body>
