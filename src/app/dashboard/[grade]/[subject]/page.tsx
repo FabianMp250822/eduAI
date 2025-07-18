@@ -58,11 +58,7 @@ export default function SubjectPage() {
                 ...t,
                 id: t.slug,
             }));
-            setTopics(prevTopics => {
-              const existingSlugs = new Set(prevTopics.map(t => t.slug));
-              const newTopics = fetchedTopics.filter((t: TopicWithId) => !existingSlugs.has(t.slug));
-              return [...prevTopics, ...newTopics];
-            });
+            setTopics(fetchedTopics);
         } else {
             const formattedLocalTopics = (localTopicsForSubject || []).map(t => ({...t, id: t.slug, progress: 0}));
             setTopics(formattedLocalTopics);
@@ -98,29 +94,23 @@ export default function SubjectPage() {
     if (isGenerating || !searchTerm.trim() || !subject) return;
 
     const query = searchTerm.trim();
-    // Prevent generation if a similar topic already exists
     const similarTopicExists = topics.some(t => t.name.toLowerCase().includes(query.toLowerCase()));
-    if (similarTopicExists) return;
+    
+    if (similarTopicExists) {
+      return; 
+    }
 
     setIsGenerating(true);
     try {
-      const newTopic = await generateSingleTopic({
+      await generateSingleTopic({
         query: query,
         gradeName: subject.gradeName,
         subjectName: subject.name,
         gradeSlug,
         subjectSlug,
       });
-
-      // Add the new topic to the local state immediately, only if it doesn't exist
-       setTopics(prevTopics => {
-        const topicExists = prevTopics.some(t => t.slug === newTopic.slug);
-        if (!topicExists) {
-          return [...prevTopics, { ...newTopic, id: newTopic.slug }];
-        }
-        return prevTopics;
-      });
-      
+      // The onSnapshot listener will automatically pick up the new topic from firebase
+      // and update the 'topics' state, so no need to manually add it here.
     } catch (error) {
       console.error("Error generating topic:", error);
       toast({
