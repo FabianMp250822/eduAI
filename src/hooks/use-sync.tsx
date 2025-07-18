@@ -71,6 +71,8 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
       console.log(`Found ${topicsToSync.length} new topics to sync.`);
 
       for (const topic of topicsToSync) {
+        if (!topic.content) continue;
+        
         const topicContent: DBTopic = {
           slug: topic.slug,
           name: topic.name,
@@ -92,12 +94,9 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   }, [syncedTopicsSet]);
 
   useEffect(() => {
-    // Initial sync on load
+    // Initial sync on load. The empty dependency array [] ensures this runs only once.
     syncContent();
-
-    // Future real-time updates could be implemented here by listening to changes
-    // in the 'subjects' collection, but for now, a sync on load is sufficient.
-  }, [syncContent]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const syncProgress = allTopicsCount > 0 ? (totalSyncedCount / allTopicsCount) * 100 : 100;
 
