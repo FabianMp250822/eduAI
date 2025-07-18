@@ -58,7 +58,11 @@ export default function SubjectPage() {
                 ...t,
                 id: t.slug,
             }));
-            setTopics(fetchedTopics);
+            setTopics(prevTopics => {
+              const existingSlugs = new Set(prevTopics.map(t => t.slug));
+              const newTopics = fetchedTopics.filter((t: TopicWithId) => !existingSlugs.has(t.slug));
+              return [...prevTopics, ...newTopics];
+            });
         } else {
             const formattedLocalTopics = (localTopicsForSubject || []).map(t => ({...t, id: t.slug, progress: 0}));
             setTopics(formattedLocalTopics);
@@ -108,8 +112,14 @@ export default function SubjectPage() {
         subjectSlug,
       });
 
-      // Add the new topic to the local state immediately
-      setTopics(prevTopics => [...prevTopics, { ...newTopic, id: newTopic.slug }]);
+      // Add the new topic to the local state immediately, only if it doesn't exist
+       setTopics(prevTopics => {
+        const topicExists = prevTopics.some(t => t.slug === newTopic.slug);
+        if (!topicExists) {
+          return [...prevTopics, { ...newTopic, id: newTopic.slug }];
+        }
+        return prevTopics;
+      });
       
     } catch (error) {
       console.error("Error generating topic:", error);
