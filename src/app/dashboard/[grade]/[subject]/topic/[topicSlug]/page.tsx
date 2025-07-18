@@ -3,7 +3,7 @@
 
 import { useParams, notFound, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { db as firebaseDb } from '@/lib/firebase';
+import { db as firebaseDb, getDoc } from '@/lib/firebase';
 import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { findSubject, type Topic } from '@/lib/curriculum';
 import { Header } from '@/components/header';
@@ -43,59 +43,32 @@ export default function TopicPage() {
     }
 
     const fetchTopic = async () => {
-        // Fetch from local DB first for offline capability
+        setLoading(true);
         const localTopic: DBTopic | undefined = await localDb.topics.get(topicSlug);
 
         if (localTopic) {
-            // Found in local DB, now get progress from Firebase if online
-            const docId = `${gradeSlug}_${subjectSlug}`;
-            const subjectRef = doc(firebaseDb, 'subjects', docId);
-            
-            let progress = 0; // Default progress
+            setTopic({ ...localTopic, progress: 0 }); // Placeholder progress
+            setLoading(false);
+
+            // Try to get real progress from Firebase if online
             if (navigator.onLine) {
                 try {
-                    const docSnap = await firebaseDb.getDoc(subjectRef);
+                    const docId = `${gradeSlug}_${subjectSlug}`;
+                    const subjectRef = doc(firebaseDb, 'subjects', docId);
+                    const docSnap = await getDoc(subjectRef);
                     if (docSnap.exists()) {
                         const onlineTopic = docSnap.data().topics?.find((t: Topic) => t.slug === topicSlug);
                         if (onlineTopic) {
-                            progress = onlineTopic.progress;
+                            setTopic(prev => prev ? { ...prev, progress: onlineTopic.progress } : null);
                         }
                     }
                 } catch (e) {
-                    console.warn("Could not fetch progress from Firebase, using default.", e);
+                    console.warn("Could not fetch progress from Firebase.", e);
                 }
-            }
-
-            setTopic({ ...localTopic, progress });
-            setLoading(false);
-
-        } else if (navigator.onLine) {
-            // Not found locally, try fetching from Firebase as a fallback
-            setError("El tema no está disponible sin conexión. Intentando cargar...");
-            console.warn("Topic not found locally, trying Firebase.");
-            const docId = `${gradeSlug}_${subjectSlug}`;
-            const subjectRef = doc(firebaseDb, 'subjects', docId);
-            try {
-                const docSnap = await firebaseDb.getDoc(subjectRef);
-                if (docSnap.exists()) {
-                    const foundTopic = docSnap.data().topics?.find((t: Topic) => t.slug === topicSlug);
-                    if (foundTopic && foundTopic.content) {
-                        setTopic(foundTopic as EnrichedTopic);
-                        setError(null);
-                    } else {
-                        setError("El tema no fue encontrado en esta materia.");
-                    }
-                } else {
-                    setError("La materia no fue encontrada.");
-                }
-            } catch (err) {
-                 setError("No se pudo cargar el tema. Verifica tu conexión.");
-            } finally {
-                setLoading(false);
             }
         } else {
-             setError("El tema no está disponible sin conexión.");
-             setLoading(false);
+            setError("El tema no está disponible sin conexión. Conéctate a internet para descargarlo.");
+            setLoading(false);
         }
     };
 
@@ -151,8 +124,8 @@ export default function TopicPage() {
       console.error("Error completing topic:", e);
        toast({
         variant: "destructive",
-        title: "Error",
-        description: "No se pudo marcar el tema como completado. Inténtalo de nuevo.",
+        title: "Error de conexión",
+        description: "No se pudo marcar el tema como completado. Inténtalo de nuevo cuando tengas conexión.",
       });
     } finally {
       setIsCompleting(false);
