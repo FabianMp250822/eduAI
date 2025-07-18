@@ -1,3 +1,4 @@
+// Unico bloque fetch para todo el manejo
 self.addEventListener('fetch', (event) => {
   // Endpoint especial para validar el estado del cache
   if (event.request.url.endsWith('/sw-cache-status')) {
@@ -21,7 +22,54 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
-  // ...existing code...
+
+  // Cacheo dinámico de rutas HTML y recursos
+  if (event.request.method === 'GET') {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        return fetch(event.request)
+          .then((response) => {
+            // Cachea nuevas peticiones GET (HTML, JS, CSS, imágenes, etc.)
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+            return response;
+          })
+          .catch(() => {
+            // Si falla la red, muestra la página offline para documentos HTML
+            if (event.request.headers.get('accept')?.includes('text/html')) {
+              return caches.match(OFFLINE_URL);
+            }
+          });
+      })
+    );
+    return;
+  }
+
+  // Sincronización de datos POST offline (ejemplo genérico)
+  if (event.request.method === 'POST') {
+    event.respondWith(
+      fetch(event.request.clone())
+        .catch(() => {
+          // Si está offline, guarda la petición en IndexedDB y registra sync
+          savePostRequest(event.request.clone());
+          self.registration.sync && self.registration.sync.register('sync-post-requests');
+          // Devuelve una respuesta genérica offline
+          return new Response(JSON.stringify({
+            success: false,
+            offline: true,
+            message: 'Guardado localmente. Se enviará cuando vuelvas a estar online.'
+          }), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        })
+    );
+  }
+});
 // Este es un Service Worker para Next.js que cachea assets y rutas para soporte offline.
 const CACHE_NAME = 'eduai-cache-v1';
 const OFFLINE_URL = '/_offline';
