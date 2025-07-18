@@ -32,6 +32,7 @@ const GenerateSingleTopicOutputSchema = z.object({
   topic: GeneratedTopicSchema,
 });
 
+// This function is now the main entry point and handles the full process
 export async function generateSingleTopic(input: GenerateSingleTopicInput): Promise<Topic> {
   const generatedContent = await generateSingleTopicFlow(input);
   

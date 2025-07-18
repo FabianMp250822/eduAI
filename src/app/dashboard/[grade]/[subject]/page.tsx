@@ -107,10 +107,7 @@ export default function SubjectPage() {
         gradeSlug,
         subjectSlug,
       });
-      toast({
-        title: "¡Tema creado!",
-        description: `Se ha generado un nuevo tema para "${query}".`,
-      });
+      // Removed toast to make it seamless
     } catch (error) {
       console.error("Error generating topic:", error);
       toast({
@@ -214,14 +211,14 @@ export default function SubjectPage() {
                                   a 15.9155 15.9155 0 0 1 0 31.831
                                   a 15.9155 15.9155 0 0 1 0 -31.831"
                                 stroke="hsl(var(--primary))"
-                                strokeWidth="2"
+                                strokeWidth="2.5"
                                 strokeDasharray={`${topic.progress}, 100`}
                                 strokeLinecap="round"
                                 fill="none"
                               />
                             </svg>
                             <div className="absolute inset-0 flex items-center justify-center">
-                               {topic.progress >= 100 ? <CheckCircle className="h-5 w-5 text-primary" /> : <Circle className="h-5 w-5 text-muted-foreground/50" />}
+                               {topic.progress >= 100 ? <CheckCircle className="h-5 w-5 text-primary" /> : topic.progress > 0 ? <div className="text-xs font-bold text-primary">{`${Math.round(topic.progress)}%`}</div> : <Circle className="h-5 w-5 text-muted-foreground/30" />}
                             </div>
                         </div>
                       </div>
@@ -241,7 +238,7 @@ export default function SubjectPage() {
                     <Sparkles className="mx-auto h-12 w-12 text-primary animate-pulse" />
                     <h3 className="mt-4 text-lg font-semibold">Buscando y creando...</h3>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        La IA está generando un nuevo tema para "{searchTerm}".
+                        Estamos preparando contenido sobre "{searchTerm}".
                     </p>
                 </>
             ) : (
@@ -249,7 +246,7 @@ export default function SubjectPage() {
                     <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
                     <h3 className="mt-4 text-lg font-semibold">No se encontraron temas</h3>
                     <p className="mt-1 text-sm text-muted-foreground">
-                    No te preocupes, nuestra IA puede crear un tema sobre "{searchTerm}" para ti.
+                    Intenta otra búsqueda. Si no encuentras lo que buscas, la IA lo creará para ti.
                     </p>
                 </>
             )}
