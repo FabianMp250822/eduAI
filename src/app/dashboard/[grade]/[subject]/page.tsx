@@ -7,14 +7,17 @@ import { findSubject } from '@/lib/curriculum';
 import { Card, CardTitle, CardDescription, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Search, Video, FileText, ClipboardCheck, MessageCircleQuestion, BookOpen, Circle, CheckCircle, Loader } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
+import { ArrowRight, Search, Video, FileText, ClipboardCheck, MessageCircleQuestion, BookOpen, Circle, CheckCircle, Loader, Sparkles } from 'lucide-react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db as localDb } from '@/lib/db';
 import { db as firebaseDb } from '@/lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { Input } from '@/components/ui/input';
 import type { Topic } from '@/lib/curriculum';
+import { generateSingleTopic } from '@/ai/flows/generate-single-topic-flow';
+import { useToast } from '@/hooks/use-toast';
+
 
 interface TopicWithId extends Topic {
   id: string;
@@ -22,16 +25,18 @@ interface TopicWithId extends Topic {
 
 export default function SubjectPage() {
   const params = useParams();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [topics, setTopics] = useState<TopicWithId[]>([]);
   const [loadingTopics, setLoadingTopics] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const generationDebounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   const gradeSlug = Array.isArray(params.grade) ? params.grade[0] : params.grade;
   const subjectSlug = Array.isArray(params.subject) ? params.subject[0] : params.subject;
 
   const subject = findSubject(gradeSlug, subjectSlug);
 
-  // Read all topics for this subject directly from local DB for offline access
   const localTopicsForSubject = useLiveQuery(
     () => localDb.topics.where('subjectSlug').equals(subjectSlug).toArray(),
     [subjectSlug],
@@ -46,7 +51,6 @@ export default function SubjectPage() {
     const docId = `${gradeSlug}_${subjectSlug}`;
     const subjectRef = doc(firebaseDb, 'subjects', docId);
 
-    // Listen for online updates from Firebase
     const unsubscribe = onSnapshot(subjectRef, (docSnap) => {
         if (docSnap.exists()) {
             const subjectData = docSnap.data();
@@ -56,14 +60,12 @@ export default function SubjectPage() {
             }));
             setTopics(fetchedTopics);
         } else {
-            // If doc doesn't exist in Firebase, rely on local data
             const formattedLocalTopics = (localTopicsForSubject || []).map(t => ({...t, id: t.slug, progress: 0}));
             setTopics(formattedLocalTopics);
         }
         setLoadingTopics(false);
     }, (error) => {
         console.warn("Offline or error fetching from Firebase, using local data.", error);
-        // In case of error (e.g., offline), we rely on the data already loaded from Dexie.
         const formattedLocalTopics = (localTopicsForSubject || []).map(t => ({...t, id: t.slug, progress: 0}));
         setTopics(formattedLocalTopics);
         setLoadingTopics(false);
@@ -78,7 +80,66 @@ export default function SubjectPage() {
             .toArray(),
     [gradeSlug, subjectSlug]
   );
-  
+
+  const filteredTopics = useMemo(() => {
+    if (!topics) return [];
+    if (!searchTerm) return topics;
+    return topics.filter(topic =>
+      topic.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      topic.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, topics]);
+
+  const triggerAIGeneration = useCallback(async () => {
+    if (isGenerating || !searchTerm.trim() || !subject) return;
+
+    const query = searchTerm.trim();
+    // Prevent generation if a similar topic already exists
+    const similarTopicExists = topics.some(t => t.name.toLowerCase().includes(query.toLowerCase()));
+    if (similarTopicExists) return;
+
+    setIsGenerating(true);
+    try {
+      await generateSingleTopic({
+        query: query,
+        gradeName: subject.gradeName,
+        subjectName: subject.name,
+        gradeSlug,
+        subjectSlug,
+      });
+      toast({
+        title: "¡Tema creado!",
+        description: `Se ha generado un nuevo tema para "${query}".`,
+      });
+    } catch (error) {
+      console.error("Error generating topic:", error);
+      toast({
+        variant: "destructive",
+        title: "Error de IA",
+        description: "No se pudo generar el tema. Inténtalo de nuevo.",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [isGenerating, searchTerm, subject, topics, gradeSlug, subjectSlug, toast]);
+
+  useEffect(() => {
+    if (generationDebounceTimer.current) {
+      clearTimeout(generationDebounceTimer.current);
+    }
+    if (searchTerm.trim() && filteredTopics.length === 0 && !isGenerating) {
+      generationDebounceTimer.current = setTimeout(() => {
+        triggerAIGeneration();
+      }, 2000); // 2-second debounce
+    }
+    return () => {
+      if (generationDebounceTimer.current) {
+        clearTimeout(generationDebounceTimer.current);
+      }
+    };
+  }, [searchTerm, filteredTopics.length, isGenerating, triggerAIGeneration]);
+
+
   if (!subject) {
     notFound();
   }
@@ -92,15 +153,7 @@ export default function SubjectPage() {
     { slug: 'ai-questions', title: 'Preguntas a la IA', icon: MessageCircleQuestion, count: aiContent?.length ?? 0, description: 'Respuestas de la IA a tus dudas guardadas.' },
   ];
   
-  const filteredTopics = useMemo(() => {
-    if (!topics) return [];
-    if (!searchTerm) return topics;
-    return topics.filter(topic =>
-      topic.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      topic.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, topics]);
-
+  const showNoResults = filteredTopics.length === 0 && !loadingTopics;
 
   return (
     <>
@@ -183,11 +236,23 @@ export default function SubjectPage() {
           </div>
         ) : (
           <div className="text-center py-10 bg-muted/50 rounded-lg">
-            <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
-            <h3 className="mt-4 text-lg font-semibold">No hay temas disponibles</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Aún no se han añadido temas para esta materia.
-            </p>
+             {isGenerating ? (
+                <>
+                    <Sparkles className="mx-auto h-12 w-12 text-primary animate-pulse" />
+                    <h3 className="mt-4 text-lg font-semibold">Buscando y creando...</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        La IA está generando un nuevo tema para "{searchTerm}".
+                    </p>
+                </>
+            ) : (
+                <>
+                    <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <h3 className="mt-4 text-lg font-semibold">No se encontraron temas</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                    No te preocupes, nuestra IA puede crear un tema sobre "{searchTerm}" para ti.
+                    </p>
+                </>
+            )}
           </div>
         )}
 
