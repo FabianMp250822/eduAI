@@ -45,24 +45,35 @@ export default function SubjectPage() {
 
   useEffect(() => {
     if (!gradeSlug || !subjectSlug) return;
-    
+
     setLoadingTopics(true);
     
+    // Fallback to local data initially
+    if (localTopicsForSubject && localTopicsForSubject.length > 0) {
+        const formattedLocalTopics = (localTopicsForSubject || []).map(t => ({...t, id: t.slug, progress: 0}));
+        setTopics(formattedLocalTopics);
+    }
+
     const docId = `${gradeSlug}_${subjectSlug}`;
     const subjectRef = doc(firebaseDb, 'subjects', docId);
 
     const unsubscribe = onSnapshot(subjectRef, (docSnap) => {
+        let finalTopics: TopicWithId[] = [];
         if (docSnap.exists()) {
             const subjectData = docSnap.data();
-            const fetchedTopics = (subjectData.topics || []).map((t: Topic) => ({
+            finalTopics = (subjectData.topics || []).map((t: Topic) => ({
                 ...t,
                 id: t.slug,
             }));
-            setTopics(fetchedTopics);
         } else {
-            const formattedLocalTopics = (localTopicsForSubject || []).map(t => ({...t, id: t.slug, progress: 0}));
-            setTopics(formattedLocalTopics);
+             // If firebase doc doesn't exist, use whatever is local
+             finalTopics = (localTopicsForSubject || []).map(t => ({...t, id: t.slug, progress: 0}));
         }
+        
+        // De-duplicate topics to prevent React key errors
+        const uniqueTopics = Array.from(new Map(finalTopics.map(item => [item.slug, item])).values());
+        setTopics(uniqueTopics);
+
         setLoadingTopics(false);
     }, (error) => {
         console.warn("Offline or error fetching from Firebase, using local data.", error);
@@ -94,14 +105,17 @@ export default function SubjectPage() {
     if (isGenerating || !searchTerm.trim() || !subject) return;
 
     const query = searchTerm.trim();
+    // Check if a similar topic already exists to prevent duplicates.
     const similarTopicExists = topics.some(t => t.name.toLowerCase().includes(query.toLowerCase()));
     
     if (similarTopicExists) {
-      return; 
+      return;
     }
 
     setIsGenerating(true);
     try {
+      // The AI flow saves the topic to Firebase.
+      // The onSnapshot listener will then automatically pick it up and update the UI.
       await generateSingleTopic({
         query: query,
         gradeName: subject.gradeName,
@@ -109,8 +123,6 @@ export default function SubjectPage() {
         gradeSlug,
         subjectSlug,
       });
-      // The onSnapshot listener will automatically pick up the new topic from firebase
-      // and update the 'topics' state, so no need to manually add it here.
     } catch (error) {
       console.error("Error generating topic:", error);
       toast({
@@ -153,8 +165,6 @@ export default function SubjectPage() {
     { slug: 'ai-questions', title: 'Preguntas a la IA', icon: MessageCircleQuestion, count: aiContent?.length ?? 0, description: 'Respuestas de la IA a tus dudas guardadas.' },
   ];
   
-  const showNoResults = filteredTopics.length === 0 && !loadingTopics;
-
   return (
     <>
       <Header title={subject.name} />
